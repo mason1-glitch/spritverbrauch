@@ -1,0 +1,1249 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Spritverbrauch</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sprit">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ECF0F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0D1315" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: schmale Instrumententafel – Zeitraum oben, Kennzahlen, zwei Verläufe, Tankbuch; Eingabe als Zapfsäulen-Blatt von unten */
+:root{
+  --bg:#ECF0F0; --surface:#FFFFFF; --field:#F3F6F6; --ink:#132024; --ink-2:#3A494E; --muted:#5D6E73;
+  --line:#D3DBDC; --grid:#E3E9EA; --accent:#0B6B6F; --accent-ink:#FFFFFF; --accent-soft:#DCECEB;
+  --amber:#C27C00; --warn:#AA3B14; --warn-soft:#FBEAE2;
+  --lcd-bg:#131B1D; --lcd-well:#0B1112; --lcd-edge:#2B3638; --lcd-fg:#FFB52E; --lcd-text:#E8F0EE; --lcd-label:#94A5A7; --lcd-ph:#5A5035;
+  --scrim:rgba(8,16,18,.45); --shadow:0 1px 2px rgba(19,32,36,.06),0 8px 24px rgba(19,32,36,.07);
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-lcd:"Share Tech Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --r:16px; --r-s:10px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0D1315; --surface:#152023; --field:#1B282B; --ink:#E3EBEB; --ink-2:#B7C4C6; --muted:#8B9B9E;
+    --line:#29373A; --grid:#1F2C2F; --accent:#46B7B1; --accent-ink:#04211F; --accent-soft:#16393A;
+    --amber:#F2B23F; --warn:#F28B5E; --warn-soft:#3A2019;
+    --lcd-bg:#080D0E; --lcd-well:#040707; --lcd-edge:#23302F; --lcd-fg:#FFB52E; --lcd-text:#E8F0EE; --lcd-label:#8A9B9D; --lcd-ph:#4E4630;
+    --scrim:rgba(0,0,0,.6); --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+[hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg);-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 var(--f-body);-webkit-text-size-adjust:100%}
+button,input,output{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+
+.app{max-width:620px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 calc(112px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px}
+
+/* Kopf */
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:calc(14px + env(safe-area-inset-top,0px)) 8px;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand h1{margin:0;font:700 26px/1 var(--f-display);letter-spacing:.01em;text-transform:uppercase}
+.brand h1 span{color:var(--accent)}
+.bk{font:500 13px/1.2 var(--f-body);color:var(--muted);text-align:right}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:3px;background:var(--field);border:1px solid var(--line);border-radius:12px}
+.seg button{border:0;background:transparent;border-radius:9px;min-height:40px;padding:8px 4px;font:600 15px/1.1 var(--f-body);color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+.banner{background:var(--warn-soft);color:var(--ink);border-radius:var(--r-s);padding:12px 14px;font-size:15px;display:grid;gap:10px}
+.banner p{margin:0}
+.banner .btn-s{justify-self:start}
+
+/* Instrumententafel */
+.dash{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.hero{padding:18px 18px 16px;display:grid;gap:2px}
+.eyebrow{font:600 12px/1.2 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hero .fig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:4px}
+.hero .val{font:600 64px/.95 var(--f-display);letter-spacing:-.01em}
+.hero .unit{font:500 22px/1 var(--f-display);color:var(--muted)}
+.hero .sub{font-size:14px;color:var(--muted);margin-top:4px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
+.tile{padding:12px 14px 14px;display:grid;gap:4px;align-content:start;min-width:0}
+.tile+.tile{border-left:1px solid var(--line)}
+.tile .lbl{font:500 13px/1.2 var(--f-body);color:var(--muted)}
+.tile .v{font:600 25px/1.05 var(--f-display);overflow-wrap:anywhere}
+.tile .s{font-size:12.5px;color:var(--muted)}
+@media (max-width:360px){.tiles{grid-template-columns:1fr 1fr}.tile:nth-child(3){grid-column:1/-1;border-left:0;border-top:1px solid var(--line)}}
+
+/* Karten */
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px 16px 12px}
+.card-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.card h2{margin:0;font:600 20px/1.1 var(--f-display);letter-spacing:.01em;text-wrap:balance}
+.card-h p{margin:0;font-size:13px;color:var(--muted)}
+.chart{position:relative;min-height:120px;touch-action:pan-y;border-radius:8px}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .grid{stroke:var(--grid);stroke-width:1}
+.chart .tick{stroke:var(--line);stroke-width:1}
+.chart .ax{fill:var(--muted);font:500 11.5px var(--f-body);font-variant-numeric:tabular-nums}
+.chart .ln{fill:none;stroke:var(--c);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.chart .area{fill:var(--c);opacity:.1}
+.chart .dot{fill:var(--c);stroke:var(--surface);stroke-width:2}
+.chart .endlbl{fill:var(--ink);font:600 13px var(--f-body);font-variant-numeric:tabular-nums}
+.chart .xh{stroke:var(--muted);stroke-width:1}
+.chart .hl{fill:var(--c);stroke:var(--surface);stroke-width:2}
+.chart-empty{margin:0;padding:34px 8px;text-align:center;color:var(--muted);font-size:15px}
+.tip{position:absolute;top:-6px;transform:translateY(-100%);pointer-events:none;background:var(--ink);color:var(--surface);border-radius:8px;padding:7px 10px;display:grid;gap:1px;white-space:nowrap;z-index:2;box-shadow:var(--shadow)}
+.tip strong{font:600 15px/1.2 var(--f-body);font-variant-numeric:tabular-nums}
+.tip span{font-size:12.5px;opacity:.8}
+.pstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.pstats div{background:var(--field);border-radius:var(--r-s);padding:9px 10px;display:grid;gap:2px;min-width:0}
+.pstats dt{font-size:12.5px;color:var(--muted)}
+.pstats dd{margin:0;font:600 21px/1.05 var(--f-display)}
+.pstats small{font-size:12px;color:var(--muted)}
+
+/* Tankbuch */
+.list{list-style:none;margin:0;padding:0}
+.list .month{font:600 12px/1 var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:16px 2px 8px}
+.list .month:first-child{padding-top:8px}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;background:transparent;border:0;border-top:1px solid var(--line);padding:12px 2px;min-height:64px}
+.list .month+li .row{border-top:0}
+button.row:hover{background:var(--field)}
+.r-date{display:grid;justify-items:center;line-height:1}
+.r-date b{font:600 26px/1 var(--f-display)}
+.r-date small{font-size:12px;color:var(--muted);margin-top:3px}
+.r-main{display:grid;gap:6px;min-width:0}
+.r-figs{font-size:15px;color:var(--ink-2);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.r-sum{font:600 20px/1 var(--f-display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip{justify-self:start;display:inline-flex;align-items:center;gap:6px;max-width:100%;font:600 13px/1.2 var(--f-body);padding:4px 9px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.chip i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.chip.part{background:transparent;border:1px dashed var(--line);color:var(--muted);font-weight:500}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip svg{flex:none;width:13px;height:13px}
+.list-note{padding:18px 2px;color:var(--muted)}
+.empty{display:grid;gap:10px;padding:6px 2px 8px}
+.empty p{margin:0;color:var(--ink-2)}
+.empty ol{margin:0;padding-left:22px;display:grid;gap:6px;color:var(--ink-2)}
+
+/* Fuß */
+.info{display:grid;gap:18px;font-size:15px}
+.info details summary{cursor:pointer;font-weight:600}
+.info details p{margin:8px 0 0;color:var(--ink-2);max-width:62ch}
+.block{display:grid;gap:8px}
+.block .k{font-weight:600}
+.hint{margin:0;font-size:13.5px;color:var(--muted);max-width:62ch}
+.tank-in{display:inline-flex;align-items:center;gap:6px}
+.tank-in input{width:5.5em;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);font-size:16px;text-align:right;font-variant-numeric:tabular-nums}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn-s{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 14px;font-weight:600;min-height:42px}
+.btn-s.strong{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.imp-confirm{background:var(--accent-soft);border-radius:var(--r-s);padding:12px 14px;display:grid;gap:10px}
+.imp-confirm p{margin:0}
+.where{margin:0;font-size:13px;color:var(--muted)}
+
+/* Eintragen-Leiste */
+.addbar{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:linear-gradient(to top,var(--bg) 62%,transparent)}
+.btn-main{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:588px;margin:0 auto;min-height:56px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font:600 18px/1 var(--f-body);box-shadow:var(--shadow)}
+.btn-main:disabled{opacity:.45;cursor:not-allowed}
+.btn-main svg{width:22px;height:22px}
+
+/* Blatt */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.panel{width:100%;max-width:560px;max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--surface);border-radius:20px 20px 0 0;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(24px)}}
+@media (prefers-reduced-motion:reduce){.panel{animation:none}}
+.panel-h{position:sticky;top:0;z-index:1;background:var(--surface);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0 10px}
+.panel-h h2{margin:0;font:600 22px/1.1 var(--f-display)}
+.x{border:0;background:var(--field);border-radius:50%;width:38px;height:38px;display:grid;place-items:center}
+.x svg{width:18px;height:18px}
+.form{display:grid;gap:14px}
+.f-date{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600}
+.f-date input{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 12px;font-size:17px;min-height:44px}
+
+.lcd{background:var(--lcd-bg);border-radius:14px;padding:6px 14px;display:grid;box-shadow:inset 0 0 0 1px var(--lcd-edge)}
+.lcd-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 0;cursor:text}
+.lcd-row+.lcd-row{border-top:1px solid var(--lcd-edge)}
+.lcd-label{color:var(--lcd-label);font:600 13px/1.2 var(--f-body);letter-spacing:.06em;text-transform:uppercase;display:grid;gap:2px}
+.lcd-label small{font-weight:500;letter-spacing:0;text-transform:none;font-size:12.5px}
+.lcd-field{display:flex;align-items:baseline;gap:6px;background:var(--lcd-well);border:1px solid var(--lcd-edge);border-radius:8px;padding:4px 10px}
+.lcd input,.lcd output{width:4.4em;border:0;background:transparent;text-align:right;font:400 28px/1.15 var(--f-lcd);color:var(--lcd-fg);padding:0;outline:none;font-variant-numeric:tabular-nums}
+.lcd.odo input{color:var(--lcd-text)}
+.lcd input::placeholder{color:var(--lcd-ph);opacity:1}
+.lcd-field:focus-within{border-color:var(--lcd-fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--lcd-fg) 35%,transparent)}
+.lcd-unit{color:var(--lcd-label);font:500 15px/1 var(--f-body);width:1.4em}
+.lcd .total .lcd-field{background:transparent;border-color:transparent}
+.lcd .total output{font-size:34px;width:auto;min-width:4.4em}
+
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:4px 2px;cursor:pointer}
+.switch-row b{display:block;font-size:17px}
+.switch-row small{color:var(--muted);font-size:13.5px}
+input[role="switch"]{appearance:none;-webkit-appearance:none;flex:none;width:54px;height:32px;border-radius:999px;background:var(--line);position:relative;margin:0;cursor:pointer;transition:background .15s}
+input[role="switch"]::before{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+input[role="switch"]:checked{background:var(--accent)}
+input[role="switch"]:checked::before{transform:translateX(22px)}
+
+.preview{background:var(--accent-soft);border-radius:var(--r-s);padding:10px 12px;font-size:15px}
+.checks{border-radius:var(--r-s);padding:12px 14px;display:grid;gap:6px;font-size:15px;background:var(--warn-soft)}
+.checks .ch-h{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--warn)}
+.checks .ch-h svg{width:18px;height:18px;flex:none}
+.checks ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.checks p{margin:2px 0 0;font-size:13.5px;color:var(--ink-2)}
+.save{min-height:54px;border:0;border-radius:14px;background:var(--accent);color:var(--accent-ink);font:600 18px/1 var(--f-body)}
+.save.warn{background:var(--warn);color:var(--surface)}
+.save:disabled{opacity:.6}
+.del-zone{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.btn-ghost{border:0;background:transparent;padding:10px 4px;font-weight:600;justify-self:start;min-height:44px}
+.btn-ghost.danger{color:var(--warn)}
+.del-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.del-confirm span{flex-basis:100%}
+.btn-danger{border:0;border-radius:10px;background:var(--warn);color:var(--surface);padding:10px 18px;font-weight:600;min-height:44px}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:30;width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--surface);border-radius:12px;padding:12px 16px;font-size:15px;box-shadow:var(--shadow)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Sprit<span>verbrauch</span></h1>
+      <span class="bk" id="bk-state"></span>
+    </div>
+    <div class="seg" id="period" role="group" aria-label="Zeitraum">
+      <button type="button" data-p="month" aria-pressed="true">Dieser Monat</button>
+      <button type="button" data-p="year" aria-pressed="false">Dieses Jahr</button>
+      <button type="button" data-p="all" aria-pressed="false">Gesamt</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" role="alert" hidden>
+    <p id="banner-text"></p>
+    <button type="button" class="btn-s" id="banner-btn" hidden></button>
+  </div>
+
+  <section class="dash" aria-label="Kennzahlen">
+    <div class="hero">
+      <span class="eyebrow">Ø Verbrauch · <span id="k-period">–</span></span>
+      <div class="fig"><span class="val" id="k-l100">–</span><span class="unit">l/100 km</span></div>
+      <span class="sub" id="k-l100-sub">Lade Daten…</span>
+    </div>
+    <div class="tiles">
+      <div class="tile"><span class="lbl">Ø Kosten pro 100 km</span><span class="v" id="k-c100">–</span><span class="s" id="k-c100-sub"></span></div>
+      <div class="tile"><span class="lbl">Gesamtkosten</span><span class="v" id="k-cost">–</span><span class="s" id="k-cost-sub"></span></div>
+      <div class="tile"><span class="lbl">Gefahrene km</span><span class="v" id="k-km">–</span><span class="s" id="k-km-sub"></span></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="h-cons">
+    <div class="card-h"><h2 id="h-cons">Verbrauch</h2><p>l/100 km je Volltankung</p></div>
+    <div class="chart" id="ch-cons" tabindex="0" aria-label="Verlauf des Verbrauchs. Mit den Pfeiltasten durch die Werte gehen."></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-price">
+    <div class="card-h"><h2 id="h-price">Literpreis</h2><p>€ pro Liter je Tankvorgang</p></div>
+    <dl class="pstats">
+      <div><dt>Günstigster</dt><dd id="p-min">–</dd><small id="p-min-d">&nbsp;</small></div>
+      <div><dt>Durchschnitt</dt><dd id="p-avg">–</dd><small>nach Menge</small></div>
+      <div><dt>Teuerster</dt><dd id="p-max">–</dd><small id="p-max-d">&nbsp;</small></div>
+    </dl>
+    <div class="chart" id="ch-price" tabindex="0" aria-label="Verlauf des Literpreises. Mit den Pfeiltasten durch die Werte gehen."></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-book">
+    <div class="card-h"><h2 id="h-book">Tankvorgänge</h2><p id="book-sub"></p></div>
+    <div class="empty" id="empty" hidden>
+      <p><b>Noch keine Tankvorgänge.</b> So geht’s beim nächsten Tanken:</p>
+      <ol>
+        <li>Tageskilometerzähler ablesen, bevor du ihn zurücksetzt.</li>
+        <li>Liter und Preis pro Liter von der Zapfsäule übernehmen.</li>
+        <li>Tageskilometerzähler auf null stellen.</li>
+      </ol>
+    </div>
+    <ul class="list" id="list"><li class="list-note">Lade Tankvorgänge…</li></ul>
+  </section>
+
+  <section class="card info" aria-label="Einstellungen und Daten">
+    <details>
+      <summary>So wird gerechnet</summary>
+      <p>Der Verbrauch folgt der Volltank-Methode: Von einer Volltankung bis zur nächsten werden alle getankten Liter und gefahrenen Kilometer addiert. Liter ÷ km × 100 ergibt l/100 km. Teilbetankungen haben deshalb keinen eigenen Wert, sie fließen in die nächste Volltankung ein. Die Kosten pro 100 km stammen aus denselben Abschnitten. Ein Abschnitt zählt zu dem Zeitraum, in dem die abschließende Volltankung liegt. Beim allerersten Eintrag nimmt die App an, dass davor vollgetankt wurde. Der durchschnittliche Literpreis ist nach getankter Menge gewichtet.</p>
+    </details>
+
+    <div class="block">
+      <label class="k" for="s-tank">Tankinhalt</label>
+      <span class="tank-in"><input id="s-tank" inputmode="decimal" autocomplete="off" aria-describedby="s-tank-hint"> l</span>
+      <p class="hint" id="s-tank-hint">Golf 8 GTI: 50 l. Grundlage für die Prüfung, ob km und Liter zu einer Tankfüllung passen.</p>
+    </div>
+
+    <div class="block" id="data-block">
+      <span class="k">Daten sichern</span>
+      <p class="hint" id="data-hint">Die Tankvorgänge liegen nur auf diesem iPhone. Lege etwa einmal im Monat eine Sicherung an, zum Beispiel in iCloud Drive oder per Nachricht an dich selbst.</p>
+      <div class="btns">
+        <button type="button" class="btn-s" id="x-json">Sicherung teilen</button>
+        <button type="button" class="btn-s" id="x-csv">Als CSV teilen</button>
+        <button type="button" class="btn-s" id="x-imp">Sicherung laden</button>
+      </div>
+      <div class="imp-confirm" id="imp-confirm" hidden>
+        <p id="imp-text"></p>
+        <div class="btns">
+          <button type="button" class="btn-s strong" id="imp-yes">Übernehmen</button>
+          <button type="button" class="btn-s" id="imp-no">Abbrechen</button>
+        </div>
+      </div>
+      <input type="file" id="imp-file" class="vh" accept=".json,application/json" tabindex="-1" aria-hidden="true">
+    </div>
+    <p class="where" id="where"></p>
+  </section>
+</div>
+
+<div class="addbar">
+  <button type="button" class="btn-main" id="add" disabled>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    Tankvorgang eintragen
+  </button>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="panel-h">
+      <h2 id="sheet-title">Neuer Tankvorgang</h2>
+      <button type="button" class="x" id="sheet-close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <form class="form" id="f-form" novalidate autocomplete="off">
+      <label class="f-date" for="f-date">Datum <input type="date" id="f-date" required></label>
+
+      <div class="lcd odo">
+        <label class="lcd-row" for="f-km">
+          <span class="lcd-label">Gefahrene km<small>laut Tageskilometerzähler</small></span>
+          <span class="lcd-field"><input id="f-km" inputmode="decimal" placeholder="0,0" enterkeyhint="next"><span class="lcd-unit">km</span></span>
+        </label>
+      </div>
+
+      <div class="lcd pump">
+        <label class="lcd-row" for="f-l">
+          <span class="lcd-label">Liter</span>
+          <span class="lcd-field"><input id="f-l" inputmode="decimal" placeholder="0,00" enterkeyhint="next"><span class="lcd-unit">l</span></span>
+        </label>
+        <label class="lcd-row" for="f-p">
+          <span class="lcd-label">Preis pro Liter</span>
+          <span class="lcd-field"><input id="f-p" inputmode="decimal" placeholder="0,000" enterkeyhint="done"><span class="lcd-unit">€</span></span>
+        </label>
+        <div class="lcd-row total">
+          <span class="lcd-label">Betrag<small>wird berechnet</small></span>
+          <span class="lcd-field"><output id="f-total" for="f-l f-p">0,00</output><span class="lcd-unit">€</span></span>
+        </div>
+      </div>
+
+      <label class="switch-row" for="f-full">
+        <span><b>Vollgetankt</b><small>Ausschalten bei Teilbetankung</small></span>
+        <input type="checkbox" id="f-full" role="switch" checked>
+      </label>
+
+      <div class="preview" id="f-preview" hidden></div>
+      <div class="checks" id="f-checks" role="alert" hidden></div>
+
+      <button type="submit" class="save" id="f-save">Speichern</button>
+
+      <div class="del-zone" id="del-zone" hidden>
+        <button type="button" class="btn-ghost danger" data-act="ask">Eintrag löschen</button>
+        <div class="del-confirm" hidden>
+          <span>Diesen Tankvorgang endgültig löschen?</span>
+          <button type="button" class="btn-danger" data-act="yes">Löschen</button>
+          <button type="button" class="btn-ghost" data-act="no">Abbrechen</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ===================== Datenhaltung =====================
+ * Die Oberfläche spricht nur über dieses Interface mit dem Speicher:
+ *   store.kind, store.label
+ *   store.subscribe(onEntries, onSettings, onError) -> unsubscribe
+ *   store.saveEntry(entry)    anlegen oder ersetzen (Schlüssel: entry.id)
+ *   store.saveMany(entries)   mehrere auf einmal (Sicherung laden)
+ *   store.deleteEntry(id)
+ *   store.saveSettings(obj)
+ *
+ * Jetzt:  LocalStore – speichert auf dem Gerät (localStorage der Home-Bildschirm-App).
+ * Später: HttpStore  – eigener Server. Dafür API_BASE setzen, z. B. 'api/'. Der Server braucht:
+ *   GET    api/entries        -> [Eintrag, …]
+ *   PUT    api/entries/{id}   Body: Eintrag (anlegen oder ersetzen)
+ *   DELETE api/entries/{id}
+ *   GET    api/settings       -> {tankLiters}
+ *   PUT    api/settings       Body: {tankLiters}
+ * Eintrag: {id, date:"JJJJ-MM-TT", km, liters, pricePerLiter, total, full, createdAt, updatedAt}
+ * Umzug: „Sicherung teilen“ (JSON) auf dem iPhone, danach mit „Sicherung laden“ in die Server-Version einlesen.
+ */
+const API_BASE = '';
+
+const LS_DATA = 'spritverbrauch.v1';
+const LS_META = 'spritverbrauch.meta';
+
+function storageWorks() {
+  try { localStorage.setItem('spritverbrauch.test', '1'); localStorage.removeItem('spritverbrauch.test'); return true; }
+  catch (e) { return false; }
+}
+
+function LocalStore() {
+  const read = () => {
+    try {
+      const o = JSON.parse(localStorage.getItem(LS_DATA) || '{}');
+      return { entries: o.entries && typeof o.entries === 'object' ? o.entries : {}, settings: o.settings && typeof o.settings === 'object' ? o.settings : {} };
+    } catch (e) { return { entries: {}, settings: {} }; }
+  };
+  let data = read();
+  const listeners = new Set();
+  const emit = () => {
+    const list = Object.keys(data.entries).map(id => ({ ...data.entries[id], id }));
+    listeners.forEach(l => { l.onEntries(list); l.onSettings(data.settings); });
+  };
+  const commit = next => {
+    try { localStorage.setItem(LS_DATA, JSON.stringify(next)); }
+    catch (e) { throw { code: 'quota_exceeded', message: String(e && e.message || e) }; }
+    data = next;
+    emit();
+  };
+  window.addEventListener('storage', e => { if (e.key === LS_DATA) { data = read(); emit(); } });
+  const strip = e => { const { id, ...body } = e; return [id, body]; };
+  return {
+    kind: 'local',
+    label: 'Nur auf diesem Gerät, in dieser App',
+    subscribe(onEntries, onSettings) {
+      const l = { onEntries, onSettings };
+      listeners.add(l);
+      setTimeout(emit, 0);
+      return () => listeners.delete(l);
+    },
+    async saveEntry(e) { const [id, body] = strip(e); commit({ ...data, entries: { ...data.entries, [id]: body } }); },
+    async saveMany(list) {
+      const entries = { ...data.entries };
+      for (const e of list) { const [id, body] = strip(e); entries[id] = body; }
+      commit({ ...data, entries });
+    },
+    async deleteEntry(id) { const entries = { ...data.entries }; delete entries[id]; commit({ ...data, entries }); },
+    async saveSettings(s) { commit({ ...data, settings: { ...s } }); },
+  };
+}
+
+function HttpStore(base) {
+  const req = async (method, path, body) => {
+    const res = await fetch(base + path, {
+      method, cache: 'no-store',
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw { code: 'unavailable', message: 'HTTP ' + res.status };
+    return res.status === 204 ? null : res.json().catch(() => null);
+  };
+  let cb = null;
+  const refresh = async () => {
+    if (!cb) return;
+    try {
+      const [list, s] = await Promise.all([req('GET', 'entries'), req('GET', 'settings')]);
+      cb.onEntries(Array.isArray(list) ? list : []);
+      cb.onSettings(s || {});
+    } catch (err) { cb.onError(err); }
+  };
+  return {
+    kind: 'server',
+    label: 'Eigener Server',
+    subscribe(onEntries, onSettings, onError) {
+      cb = { onEntries, onSettings, onError };
+      refresh();
+      const timer = setInterval(refresh, 30000);
+      const onVis = () => { if (document.visibilityState === 'visible') refresh(); };
+      document.addEventListener('visibilitychange', onVis);
+      return () => { cb = null; clearInterval(timer); document.removeEventListener('visibilitychange', onVis); };
+    },
+    async saveEntry(e) { await req('PUT', 'entries/' + encodeURIComponent(e.id), e); refresh(); },
+    async saveMany(list) { for (const e of list) await req('PUT', 'entries/' + encodeURIComponent(e.id), e); refresh(); },
+    async deleteEntry(id) { await req('DELETE', 'entries/' + encodeURIComponent(id)); refresh(); },
+    async saveSettings(s) { await req('PUT', 'settings', s); refresh(); },
+  };
+}
+
+// Gerätebezogene Angaben (z. B. letzte Sicherung) – gehören nicht zu den Tankdaten.
+const meta = {
+  get() { try { return JSON.parse(localStorage.getItem(LS_META) || '{}') || {}; } catch (e) { return {}; } },
+  set(patch) { try { localStorage.setItem(LS_META, JSON.stringify({ ...meta.get(), ...patch })); } catch (e) {} },
+};
+
+/* ===================== Grundwerte & Formate ===================== */
+const MIN_L100 = 3, MAX_L100 = 20, PRICE_MIN = 1, PRICE_MAX = 3, DEFAULT_TANK = 50;
+const BACKUP_DAYS = 30;
+const DAY = 864e5;
+const $ = (s, r = document) => r.querySelector(s);
+
+const nfCache = {};
+const nf = (min, max = min, group = true) =>
+  nfCache[min + '-' + max + '-' + group] ||
+  (nfCache[min + '-' + max + '-' + group] = new Intl.NumberFormat('de-DE', { minimumFractionDigits: min, maximumFractionDigits: max, useGrouping: group }));
+const fmt = {
+  l100: v => nf(1).format(v),
+  eur: v => nf(2).format(v) + ' €',
+  price: v => nf(3).format(v) + ' €',
+  km: v => nf(0).format(v),
+  kmExact: v => nf(0, 1).format(v),
+  l: v => nf(2).format(v),
+};
+const inputNum = (v, d) => nf(0, d, false).format(v);
+const fixedNum = (v, d) => nf(d, d, false).format(v);
+
+const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+const MON_SHORT = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+const WEEKDAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const pad2 = n => String(n).padStart(2, '0');
+const toISO = d => d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+const todayISO = () => toISO(new Date());
+const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const fmtDate = s => { const d = parseISO(s); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear(); };
+const fmtDayMonth = s => { const d = parseISO(s); return d.getDate() + '.' + (d.getMonth() + 1) + '.'; };
+const round = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
+const sum = (list, key) => list.reduce((a, x) => a + x[key], 0);
+const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+const newId = () => 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+function parseNum(str) {
+  let s = String(str == null ? '' : str).replace(/[\s€]/g, '');
+  if (!s) return null;
+  if (s.includes(',') && s.includes('.')) s = s.replace(/\./g, '');
+  s = s.replace(',', '.');
+  const v = Number(s);
+  return Number.isFinite(v) ? v : NaN;
+}
+
+function clean(raw) {
+  const num = v => typeof v === 'number' && Number.isFinite(v) ? v
+    : typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v)) ? Number(v) : null;
+  if (!raw || typeof raw.id !== 'string' || !/^[\w.~:@+-]{1,80}$/.test(raw.id) || !/^\d{4}-\d{2}-\d{2}$/.test(raw.date || '')) return null;
+  const km = num(raw.km), liters = num(raw.liters), price = num(raw.pricePerLiter);
+  if (km == null || liters == null || price == null) return null;
+  const total = num(raw.total);
+  return {
+    id: raw.id, date: raw.date, km, liters, pricePerLiter: price,
+    total: total == null ? round(liters * price, 2) : total,
+    full: raw.full !== false,
+    createdAt: String(raw.createdAt || ''), updatedAt: String(raw.updatedAt || ''),
+  };
+}
+
+/* ===================== Berechnung ===================== */
+function sortEntries(list) {
+  return list.slice().sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
+}
+function makeSegment(list, closed) {
+  const km = sum(list, 'km'), liters = sum(list, 'liters'), cost = sum(list, 'total');
+  const ok = closed && km > 0;
+  return { entries: list, closed, end: list[list.length - 1], km, liters, cost,
+    l100: ok ? liters / km * 100 : null, c100: ok ? cost / km * 100 : null };
+}
+// Volltank-Methode: Alles nach einer Volltankung bis einschließlich der nächsten bildet einen Abschnitt.
+function analyse(sorted) {
+  const segments = [], segOf = new Map();
+  let open = [];
+  for (const e of sorted) {
+    open.push(e);
+    if (e.full) {
+      const s = makeSegment(open, true);
+      segments.push(s);
+      open.forEach(x => segOf.set(x.id, s));
+      open = [];
+    }
+  }
+  const pending = open.length ? makeSegment(open, false) : null;
+  if (pending) open.forEach(x => segOf.set(x.id, pending));
+  return { segments, pending, segOf };
+}
+
+const PERIODS = { month: 'Dieser Monat', year: 'Dieses Jahr', all: 'Gesamt' };
+function inPeriod(date, p, today) {
+  if (p === 'month') return date.slice(0, 7) === today.slice(0, 7);
+  if (p === 'year') return date.slice(0, 4) === today.slice(0, 4);
+  return true;
+}
+function periodName(p) {
+  const d = new Date();
+  return p === 'month' ? MONTHS[d.getMonth()] + ' ' + d.getFullYear() : p === 'year' ? String(d.getFullYear()) : 'gesamt';
+}
+function stats(sorted, an, p) {
+  const today = todayISO();
+  const ents = sorted.filter(e => inPeriod(e.date, p, today));
+  const segs = an.segments.filter(s => s.km > 0 && inPeriod(s.end.date, p, today));
+  const segKm = sum(segs, 'km');
+  const cost = sum(ents, 'total'), km = sum(ents, 'km'), liters = sum(ents, 'liters');
+  let pMin = null, pMax = null;
+  for (const e of ents) {
+    if (!pMin || e.pricePerLiter < pMin.pricePerLiter) pMin = e;
+    if (!pMax || e.pricePerLiter > pMax.pricePerLiter) pMax = e;
+  }
+  return {
+    ents, segs, segKm, cost, km, liters, pMin, pMax,
+    l100: segKm > 0 ? sum(segs, 'liters') / segKm * 100 : null,
+    c100: segKm > 0 ? sum(segs, 'cost') / segKm * 100 : null,
+    pAvg: liters > 0 ? cost / liters : null,
+  };
+}
+
+function currentTank() { const t = Number(state.settings.tankLiters); return t > 0 ? t : DEFAULT_TANK; }
+
+function plausibility(d, seg) {
+  const errors = [], warns = [];
+  if (!d.date) errors.push('Bitte ein Datum wählen.');
+  if (d.km == null) errors.push('Bitte die gefahrenen km eintragen.');
+  else if (Number.isNaN(d.km) || d.km < 0) errors.push('Die gefahrenen km sind keine gültige Zahl.');
+  if (d.liters == null) errors.push('Bitte die getankten Liter eintragen.');
+  else if (Number.isNaN(d.liters) || d.liters <= 0) errors.push('Die Liter sind keine gültige Zahl.');
+  if (d.pricePerLiter == null) errors.push('Bitte den Preis pro Liter eintragen.');
+  else if (Number.isNaN(d.pricePerLiter) || d.pricePerLiter <= 0) errors.push('Der Preis pro Liter ist keine gültige Zahl.');
+  if (errors.length) return { errors, warns };
+
+  const tank = currentTank();
+  const maxKm = tank / MIN_L100 * 100;
+  if (d.km === 0) warns.push('0 km seit dem letzten Tanken. Hast du den Tageskilometerzähler abgelesen?');
+  else if (d.km > maxKm) warns.push(fmt.kmExact(d.km) + ' km sind mehr, als eine Tankfüllung von ' + inputNum(tank, 1) + ' l hergibt (höchstens etwa ' + fmt.km(round(maxKm, -1)) + ' km).');
+  if (d.liters > tank * 1.05) warns.push(fmt.l(d.liters) + ' l sind mehr, als der Tank fasst (' + inputNum(tank, 1) + ' l).');
+  if (d.pricePerLiter < PRICE_MIN || d.pricePerLiter > PRICE_MAX)
+    warns.push('Ein Literpreis von ' + fmt.price(d.pricePerLiter) + ' wirkt unrealistisch. Üblich sind 1,00 bis 3,00 €.');
+  if (seg && seg.closed && seg.l100 != null && (seg.l100 < MIN_L100 || seg.l100 > MAX_L100))
+    warns.push('Daraus ergeben sich ' + fmt.l100(seg.l100) + ' l/100 km. Realistisch sind 3 bis 20 l/100 km. Stimmen km und Liter?');
+  return { errors, warns };
+}
+
+/* ===================== Zustand ===================== */
+const state = {
+  entries: [], settings: {}, period: 'month', conn: 'connecting', loaded: false, store: null,
+  editing: null, draftId: null, attempted: false, saving: false, pendingImport: null,
+  sorted: [], an: { segments: [], pending: null, segOf: new Map() },
+};
+try { const p = localStorage.getItem('sv-period'); if (PERIODS[p]) state.period = p; } catch (e) {}
+
+const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_STANDALONE = navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+const ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18v.01"/></svg>';
+
+/* ===================== Darstellung ===================== */
+function render() {
+  state.sorted = sortEntries(state.entries);
+  state.an = analyse(state.sorted);
+  const st = stats(state.sorted, state.an, state.period);
+  renderStatus();
+  renderPeriod();
+  renderKpis(st);
+  renderCharts(st);
+  renderList(st);
+  renderSettings();
+}
+
+function daysSince(iso) { return iso ? Math.floor((Date.now() - new Date(iso).getTime()) / DAY) : null; }
+
+function renderStatus() {
+  const last = meta.get().lastBackupAt;
+  const age = daysSince(last);
+  const isLocal = state.store && state.store.kind === 'local';
+  $('#bk-state').textContent = !isLocal || !state.entries.length ? ''
+    : last ? 'Gesichert am ' + fmtDayMonth(toISO(new Date(last))) : 'Noch nicht gesichert';
+
+  let msg = '', btn = '';
+  if (state.conn === 'unavailable') msg = 'Diese Ansicht kann keine Daten speichern. Öffne die App über das Symbol auf dem Home-Bildschirm und nicht im privaten Modus von Safari.';
+  else if (state.conn === 'error') msg = 'Der Server ist gerade nicht erreichbar. Die App versucht es alle 30 Sekunden erneut.';
+  else if (isLocal && IS_IOS && !IS_STANDALONE) msg = 'Füge die App zum Home-Bildschirm hinzu und öffne sie nur dort. Was du hier in Safari einträgst, sieht die App auf dem Home-Bildschirm nicht.';
+  else if (isLocal && state.entries.length && (age == null || age >= BACKUP_DAYS)) {
+    msg = age == null ? 'Es gibt noch keine Sicherung. Die Tankvorgänge liegen nur auf diesem iPhone.' : 'Die letzte Sicherung ist ' + age + ' Tage alt.';
+    btn = 'Jetzt sichern';
+  }
+  $('#banner-text').textContent = msg;
+  const bb = $('#banner-btn');
+  bb.textContent = btn;
+  bb.hidden = !btn;
+  $('#banner').hidden = !msg;
+
+  const canWrite = !!state.store && state.conn === 'live';
+  $('#add').disabled = !canWrite;
+  $('#s-tank').disabled = !canWrite;
+  for (const id of ['#x-json', '#x-csv']) $(id).disabled = !state.entries.length;
+  $('#x-imp').disabled = !canWrite;
+  $('#data-hint').hidden = !isLocal;
+  $('#where').textContent = state.store ? 'Gespeichert: ' + state.store.label : '';
+}
+
+function renderPeriod() {
+  for (const b of $('#period').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.p === state.period));
+}
+
+function renderKpis(st) {
+  $('#k-period').textContent = periodName(state.period);
+  $('#k-l100').textContent = st.l100 == null ? '–' : fmt.l100(st.l100);
+  $('#k-l100-sub').textContent = !state.loaded ? (state.conn === 'connecting' ? 'Lade Daten…' : 'Keine Daten verfügbar')
+    : st.segs.length ? 'aus ' + plural(st.segs.length, 'Volltankung', 'Volltankungen') + ' über ' + fmt.km(st.segKm) + ' km'
+    : st.ents.length ? 'Noch keine abgeschlossene Volltankung in diesem Zeitraum'
+    : 'Noch keine Tankvorgänge in diesem Zeitraum';
+  $('#k-c100').textContent = st.c100 == null ? '–' : fmt.eur(st.c100);
+  $('#k-c100-sub').textContent = st.c100 == null ? '' : 'über dieselben Abschnitte';
+  $('#k-cost').textContent = st.ents.length ? fmt.eur(st.cost) : '–';
+  $('#k-cost-sub').textContent = st.ents.length ? plural(st.ents.length, 'Tankvorgang', 'Tankvorgänge') : '';
+  $('#k-km').textContent = st.ents.length ? fmt.km(st.km) + ' km' : '–';
+  $('#k-km-sub').textContent = st.ents.length ? fmt.l(st.liters) + ' l getankt' : '';
+
+  $('#p-min').textContent = st.pMin ? fmt.price(st.pMin.pricePerLiter) : '–';
+  $('#p-min-d').textContent = st.pMin ? 'am ' + fmtDayMonth(st.pMin.date) : ' ';
+  $('#p-max').textContent = st.pMax ? fmt.price(st.pMax.pricePerLiter) : '–';
+  $('#p-max-d').textContent = st.pMax ? 'am ' + fmtDayMonth(st.pMax.date) : ' ';
+  $('#p-avg').textContent = st.pAvg == null ? '–' : fmt.price(st.pAvg);
+}
+
+function renderCharts(st) {
+  const any = state.entries.length > 0;
+  const consPts = st.segs.map(s => ({
+    t: parseISO(s.end.date).getTime(), v: s.l100, date: s.end.date,
+    sub: fmt.kmExact(s.km) + ' km · ' + fmt.l(s.liters) + ' l' +
+      (s.entries.length > 1 ? ' · ' + plural(s.entries.length - 1, 'Teilbetankung', 'Teilbetankungen') + ' eingerechnet' : ''),
+  }));
+  drawLine($('#ch-cons'), consPts, {
+    color: 'var(--accent)', minSpan: 1,
+    valueText: v => fmt.l100(v) + ' l/100 km', short: v => fmt.l100(v),
+    empty: !state.loaded ? 'Lade Daten…' : any ? 'In diesem Zeitraum gibt es noch keine abgeschlossene Volltankung.' : 'Erscheint nach der ersten Volltankung.',
+  });
+  const pricePts = st.ents.map(e => ({
+    t: parseISO(e.date).getTime(), v: e.pricePerLiter, date: e.date,
+    sub: fmt.l(e.liters) + ' l · ' + fmt.eur(e.total),
+  }));
+  drawLine($('#ch-price'), pricePts, {
+    color: 'var(--amber)', minSpan: 0.06,
+    valueText: v => fmt.price(v) + ' pro Liter', short: v => nf(3).format(v),
+    empty: !state.loaded ? 'Lade Daten…' : any ? 'Keine Tankvorgänge in diesem Zeitraum.' : 'Erscheint nach dem ersten Tankvorgang.',
+  });
+}
+
+function chipFor(e) {
+  const seg = state.an.segOf.get(e.id);
+  if (e.full && seg && seg.l100 != null) {
+    const odd = seg.l100 < MIN_L100 || seg.l100 > MAX_L100;
+    return '<span class="chip' + (odd ? ' warn' : '') + '">' + (odd ? ICON_WARN : '<i></i>') + fmt.l100(seg.l100) + ' l/100 km' +
+      (seg.entries.length > 1 ? ' · inkl. ' + plural(seg.entries.length - 1, 'Teilbetankung', 'Teilbetankungen') : '') + '</span>';
+  }
+  if (e.full) return '<span class="chip part">Volltankung ohne km</span>';
+  if (seg && seg.closed) return '<span class="chip part">Teilbetankung · zählt zum ' + fmtDayMonth(seg.end.date) + '</span>';
+  return '<span class="chip part">Teilbetankung · wartet auf Volltankung</span>';
+}
+
+function renderList(st) {
+  const ul = $('#list');
+  const empty = $('#empty');
+  $('#book-sub').textContent = state.loaded && st.ents.length ? PERIODS[state.period] : '';
+  if (!state.loaded) {
+    empty.hidden = true;
+    ul.innerHTML = '<li class="list-note">' + (state.conn === 'connecting' ? 'Lade Tankvorgänge…' : 'Keine Daten verfügbar.') + '</li>';
+    return;
+  }
+  empty.hidden = state.entries.length > 0;
+  if (!state.entries.length) { ul.innerHTML = ''; return; }
+  if (!st.ents.length) {
+    ul.innerHTML = '<li class="list-note">Keine Tankvorgänge ' + (state.period === 'month' ? 'in diesem Monat' : 'in diesem Jahr') + '. Unter „Gesamt“ siehst du alle.</li>';
+    return;
+  }
+  let html = '', lastMonth = '';
+  for (const e of st.ents.slice().reverse()) {
+    const d = parseISO(e.date);
+    const mk = e.date.slice(0, 7);
+    if (mk !== lastMonth) { html += '<li class="month">' + MONTHS[d.getMonth()] + ' ' + d.getFullYear() + '</li>'; lastMonth = mk; }
+    html += '<li><button type="button" class="row" data-id="' + e.id + '" aria-label="Tankvorgang vom ' + fmtDate(e.date) + ' bearbeiten">' +
+      '<span class="r-date"><b>' + d.getDate() + '.</b><small>' + WEEKDAYS[d.getDay()] + '</small></span>' +
+      '<span class="r-main"><span class="r-figs">' + fmt.kmExact(e.km) + ' km · ' + fmt.l(e.liters) + ' l · ' + nf(3).format(e.pricePerLiter) + ' €/l</span>' + chipFor(e) + '</span>' +
+      '<span class="r-sum">' + fmt.eur(e.total) + '</span></button></li>';
+  }
+  ul.innerHTML = html;
+}
+
+function renderSettings() {
+  const inp = $('#s-tank');
+  if (document.activeElement !== inp) inp.value = inputNum(currentTank(), 1);
+}
+
+/* ===================== Diagramm ===================== */
+function niceStep(raw) {
+  const p = 10 ** Math.floor(Math.log10(raw)), f = raw / p;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p;
+}
+function niceTicks(lo, hi, n) {
+  const step = niceStep((hi - lo) / (n - 1));
+  const a = Math.floor(lo / step + 1e-9) * step, b = Math.ceil(hi / step - 1e-9) * step;
+  const ticks = [];
+  for (let v = a; v <= b + step / 2; v += step) ticks.push(round(v, 10));
+  return { ticks, step };
+}
+function decimalsFor(step) {
+  let d = 0;
+  while (d < 4 && Math.abs(Math.round(step * 10 ** d) - step * 10 ** d) > 1e-9) d++;
+  return d;
+}
+function timeTicks(t0, t1, iw) {
+  const maxN = Math.max(2, Math.floor(iw / 46));
+  const days = (t1 - t0) / DAY;
+  const out = [];
+  const d = new Date(t0); d.setHours(0, 0, 0, 0);
+  if (days <= 75) {
+    const step = [1, 2, 7, 14, 28].find(s => days / s <= maxN) || 28;
+    if (d.getTime() < t0) d.setDate(d.getDate() + 1);
+    for (; d.getTime() <= t1; d.setDate(d.getDate() + step)) out.push({ t: d.getTime(), label: d.getDate() + '.' + (d.getMonth() + 1) + '.' });
+  } else {
+    const step = [1, 2, 3, 6, 12, 24].find(s => days / 30.44 / s <= maxN) || 24;
+    d.setDate(1);
+    if (d.getTime() < t0) d.setMonth(d.getMonth() + 1);
+    while (d.getMonth() % Math.min(step, 12) !== 0) d.setMonth(d.getMonth() + 1);
+    for (; d.getTime() <= t1; d.setMonth(d.getMonth() + step))
+      out.push({ t: d.getTime(), label: step >= 12 || d.getMonth() === 0 ? String(d.getFullYear()) : MON_SHORT[d.getMonth()] });
+  }
+  return out;
+}
+
+function drawLine(host, pts, o) {
+  host._chart = [pts, o];
+  host._w = Math.round(host.clientWidth);
+  host.replaceChildren();
+  host.style.setProperty('--c', o.color);
+  host.onkeydown = host.onfocus = host.onblur = null;
+  if (!pts.length) {
+    const p = document.createElement('p');
+    p.className = 'chart-empty';
+    p.textContent = o.empty;
+    host.append(p);
+    return;
+  }
+  const W = Math.max(260, host._w || 320), H = 184;
+  const m = { l: 40, r: 50, t: 14, b: 28 };
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  let t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+  if (t1 - t0 < 10 * DAY) { const mid = (t0 + t1) / 2; t0 = mid - 7 * DAY; t1 = mid + 7 * DAY; }
+  else { const padT = (t1 - t0) * 0.05; t0 -= padT; t1 += padT; }
+  let v0 = Math.min(...pts.map(p => p.v)), v1 = Math.max(...pts.map(p => p.v));
+  if (v1 - v0 < o.minSpan) { const mid = (v0 + v1) / 2; v0 = mid - o.minSpan / 2; v1 = mid + o.minSpan / 2; }
+  const { ticks, step } = niceTicks(v0, v1, 4);
+  const ya = ticks[0], yb = ticks[ticks.length - 1];
+  const sx = t => m.l + (t - t0) / (t1 - t0) * iw;
+  const sy = v => m.t + (1 - (v - ya) / (yb - ya)) * ih;
+  const dec = decimalsFor(step);
+  const f1 = n => n.toFixed(1);
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" aria-hidden="true">';
+  for (const v of ticks) {
+    const y = sy(v);
+    svg += '<line class="grid" x1="' + m.l + '" x2="' + (W - m.r + 6) + '" y1="' + f1(y) + '" y2="' + f1(y) + '"/>' +
+      '<text class="ax" x="' + (m.l - 8) + '" y="' + f1(y + 4) + '" text-anchor="end">' + nf(dec).format(v) + '</text>';
+  }
+  for (const tk of timeTicks(t0, t1, iw)) {
+    const x = sx(tk.t);
+    if (x < m.l - 2 || x > W - m.r + 6) continue;
+    svg += '<line class="tick" x1="' + f1(x) + '" x2="' + f1(x) + '" y1="' + (H - m.b) + '" y2="' + (H - m.b + 4) + '"/>' +
+      '<text class="ax" x="' + f1(x) + '" y="' + (H - 8) + '" text-anchor="middle">' + tk.label + '</text>';
+  }
+  const xy = pts.map(p => [sx(p.t), sy(p.v)]);
+  const path = xy.map(([x, y], i) => (i ? 'L' : 'M') + f1(x) + ',' + f1(y)).join('');
+  const base = H - m.b;
+  if (xy.length > 1) {
+    svg += '<path class="area" d="' + path + 'L' + f1(xy[xy.length - 1][0]) + ',' + base + 'L' + f1(xy[0][0]) + ',' + base + 'Z"/>' +
+      '<path class="ln" d="' + path + '"/>';
+  }
+  const showDots = pts.length <= 40;
+  xy.forEach(([x, y], i) => { if (showDots || i === xy.length - 1) svg += '<circle class="dot" cx="' + f1(x) + '" cy="' + f1(y) + '" r="4"/>'; });
+  const [lx, ly] = xy[xy.length - 1];
+  svg += '<text class="endlbl" x="' + f1(lx + 9) + '" y="' + f1(ly + 4) + '">' + o.short(pts[pts.length - 1].v) + '</text>';
+  svg += '<g class="hover" visibility="hidden"><line class="xh" y1="' + m.t + '" y2="' + base + '"/><circle class="hl" r="5.5"/></g>';
+  svg += '<rect x="' + m.l + '" y="0" width="' + iw + '" height="' + H + '" fill="transparent"/></svg>';
+  host.insertAdjacentHTML('beforeend', svg);
+
+  const tip = document.createElement('div');
+  tip.className = 'tip';
+  tip.hidden = true;
+  const tv = document.createElement('strong'), td = document.createElement('span'), ts = document.createElement('span');
+  tip.append(tv, td, ts);
+  host.append(tip);
+
+  const svgEl = host.querySelector('svg'), g = svgEl.querySelector('.hover');
+  const xh = g.querySelector('.xh'), hl = g.querySelector('.hl');
+  let idx = -1, hideT = 0;
+  const show = i => {
+    idx = i;
+    const [x, y] = xy[i], p = pts[i];
+    xh.setAttribute('x1', x); xh.setAttribute('x2', x);
+    hl.setAttribute('cx', x); hl.setAttribute('cy', y);
+    g.setAttribute('visibility', 'visible');
+    tv.textContent = o.valueText(p.v);
+    td.textContent = fmtDate(p.date);
+    ts.textContent = p.sub || '';
+    ts.hidden = !p.sub;
+    tip.hidden = false;
+    const scale = svgEl.getBoundingClientRect().width / W;
+    const tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(x * scale - tw / 2, host.clientWidth - tw)) + 'px';
+  };
+  const hide = () => { g.setAttribute('visibility', 'hidden'); tip.hidden = true; idx = -1; };
+  const nearest = clientX => {
+    const r = svgEl.getBoundingClientRect();
+    const x = (clientX - r.left) * W / r.width;
+    let best = 0, bd = Infinity;
+    xy.forEach(([px], i) => { const dd = Math.abs(px - x); if (dd < bd) { bd = dd; best = i; } });
+    return best;
+  };
+  svgEl.addEventListener('pointermove', e => { clearTimeout(hideT); show(nearest(e.clientX)); });
+  svgEl.addEventListener('pointerdown', e => { clearTimeout(hideT); show(nearest(e.clientX)); });
+  svgEl.addEventListener('pointerleave', e => {
+    clearTimeout(hideT);
+    if (e.pointerType === 'mouse') hide(); else hideT = setTimeout(hide, 2500);
+  });
+  host.onkeydown = e => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      const cur = idx < 0 ? pts.length - 1 : idx;
+      show(Math.max(0, Math.min(pts.length - 1, cur + (e.key === 'ArrowRight' ? 1 : -1))));
+    } else if (e.key === 'Escape') hide();
+  };
+  host.onfocus = () => { if (host.matches(':focus-visible')) show(pts.length - 1); };
+  host.onblur = hide;
+}
+
+/* ===================== Eingabe ===================== */
+const F = {};
+
+function readDraft() {
+  const existing = state.editing && state.entries.find(e => e.id === state.editing);
+  return {
+    id: state.draftId,
+    date: F.date.value,
+    km: parseNum(F.km.value),
+    liters: parseNum(F.l.value),
+    pricePerLiter: parseNum(F.p.value),
+    full: F.full.checked,
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+  };
+}
+function draftSegment(d) {
+  const ok = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+  if (!d.date || !ok(d.km) || !ok(d.liters) || !ok(d.pricePerLiter)) return null;
+  const draft = { ...d, total: round(d.liters * d.pricePerLiter, 2) };
+  const list = sortEntries(state.entries.filter(e => e.id !== d.id).concat([draft]));
+  return analyse(list).segOf.get(d.id) || null;
+}
+
+function openSheet(entry) {
+  if (!entry && $('#add').disabled) return;
+  state.editing = entry ? entry.id : null;
+  state.draftId = entry ? entry.id : newId();
+  state.attempted = false;
+  $('#sheet-title').textContent = entry ? 'Tankvorgang bearbeiten' : 'Neuer Tankvorgang';
+  F.date.value = entry ? entry.date : todayISO();
+  F.km.value = entry ? inputNum(entry.km, 1) : '';
+  F.l.value = entry ? inputNum(entry.liters, 2) : '';
+  F.p.value = entry ? inputNum(entry.pricePerLiter, 3) : '';
+  const last = state.sorted[state.sorted.length - 1];
+  F.p.placeholder = last ? fixedNum(last.pricePerLiter, 3) : '0,000';
+  F.full.checked = entry ? entry.full : true;
+  const dz = $('#del-zone');
+  dz.hidden = !entry;
+  dz.querySelector('[data-act="ask"]').hidden = false;
+  dz.querySelector('.del-confirm').hidden = true;
+  $('#sheet').hidden = false;
+  document.documentElement.style.overflow = 'hidden';
+  $('.panel').scrollTop = 0;
+  updateForm();
+  if (!entry) F.km.focus({ preventScroll: true });
+}
+function closeSheet() {
+  $('#sheet').hidden = true;
+  document.documentElement.style.overflow = '';
+  state.editing = null;
+}
+
+function renderChecks(chk, extraError) {
+  const box = F.checks;
+  const isErr = !!extraError || chk.errors.length > 0;
+  const items = extraError ? [extraError] : isErr ? chk.errors : chk.warns;
+  box.replaceChildren();
+  box.hidden = !items.length;
+  if (!items.length) return;
+  const h = document.createElement('div');
+  h.className = 'ch-h';
+  h.innerHTML = ICON_WARN;
+  h.append(isErr ? (extraError ? 'Nicht gespeichert' : 'Bitte ergänzen') : 'Bitte prüfen');
+  const ul = document.createElement('ul');
+  for (const t of items) { const li = document.createElement('li'); li.textContent = t; ul.append(li); }
+  box.append(h, ul);
+  if (!isErr) {
+    const p = document.createElement('p');
+    p.textContent = 'Wenn alles stimmt, tippe auf „Trotzdem speichern“.';
+    box.append(p);
+  }
+}
+
+function updateForm() {
+  const d = readDraft();
+  const okL = d.liters > 0, okP = d.pricePerLiter > 0;
+  F.total.textContent = okL && okP ? fixedNum(round(d.liters * d.pricePerLiter, 2), 2) : '0,00';
+  const seg = draftSegment(d);
+  let pv = '';
+  if (seg && seg.closed && seg.l100 != null) {
+    if (seg.end.id === d.id) {
+      pv = seg.entries.length > 1
+        ? 'Verbrauch seit der letzten Volltankung, inkl. ' + plural(seg.entries.length - 1, 'Teilbetankung', 'Teilbetankungen') + ': <b>' + fmt.l100(seg.l100) + ' l/100 km</b>'
+        : 'Verbrauch: <b>' + fmt.l100(seg.l100) + ' l/100 km</b> · ' + fmt.eur(seg.c100) + ' pro 100 km';
+    } else {
+      pv = 'Zählt zur Volltankung am ' + fmtDate(seg.end.date) + ': <b>' + fmt.l100(seg.l100) + ' l/100 km</b>';
+    }
+  } else if (!d.full) {
+    pv = 'Teilbetankung: Der Verbrauch wird mit der nächsten Volltankung berechnet.';
+  }
+  F.preview.innerHTML = pv;
+  F.preview.hidden = !pv;
+  const chk = plausibility(d, seg);
+  if (state.attempted) renderChecks(chk); else F.checks.hidden = true;
+  const warnMode = state.attempted && !chk.errors.length && chk.warns.length > 0;
+  F.save.textContent = state.saving ? 'Speichert…' : warnMode ? 'Trotzdem speichern' : 'Speichern';
+  F.save.classList.toggle('warn', warnMode && !state.saving);
+}
+
+async function onSubmit(ev) {
+  ev.preventDefault();
+  if (state.saving || !state.store) return;
+  const d = readDraft();
+  const seg = draftSegment(d);
+  const chk = plausibility(d, seg);
+  const firstTry = !state.attempted;
+  state.attempted = true;
+  if (chk.errors.length || (chk.warns.length && firstTry)) {
+    updateForm();
+    F.checks.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    return;
+  }
+  const liters = round(d.liters, 2), price = round(d.pricePerLiter, 3);
+  const entry = {
+    id: d.id, date: d.date, km: round(d.km, 1), liters, pricePerLiter: price,
+    total: round(liters * price, 2), full: d.full,
+    createdAt: d.createdAt, updatedAt: new Date().toISOString(),
+  };
+  const isNew = !state.editing;
+  state.saving = true;
+  F.save.disabled = true;
+  updateForm();
+  try {
+    await state.store.saveEntry(entry);
+    const s2 = draftSegment(entry);
+    closeSheet();
+    const cons = s2 && s2.closed && s2.end.id === entry.id && s2.l100 != null ? ' · ' + fmt.l100(s2.l100) + ' l/100 km' : '';
+    toast(isNew ? 'Gespeichert' + cons + '. Jetzt den Tageskilometerzähler auf null stellen.' : 'Änderung gespeichert' + cons + '.');
+  } catch (err) {
+    const code = err && err.code;
+    renderChecks({ errors: [], warns: [] },
+      code === 'quota_exceeded' ? 'Der Speicher auf diesem Gerät ist voll. Lege eine Sicherung an und lösche alte Einträge.'
+      : state.store.kind === 'server' ? 'Speichern fehlgeschlagen. Prüfe die Internetverbindung und tippe noch einmal auf Speichern.'
+      : 'Speichern fehlgeschlagen. Tippe noch einmal auf Speichern.');
+  } finally {
+    state.saving = false;
+    F.save.disabled = false;
+    if (!$('#sheet').hidden) {
+      F.save.textContent = 'Speichern';
+      F.save.classList.remove('warn');
+    }
+  }
+}
+
+async function onDeleteZone(e) {
+  const act = e.target.closest('[data-act]');
+  if (!act) return;
+  const dz = $('#del-zone');
+  const ask = dz.querySelector('[data-act="ask"]'), conf = dz.querySelector('.del-confirm');
+  if (act.dataset.act === 'ask') { ask.hidden = true; conf.hidden = false; return; }
+  if (act.dataset.act === 'no') { ask.hidden = false; conf.hidden = true; return; }
+  if (!state.editing || !state.store) return;
+  act.disabled = true;
+  try {
+    await state.store.deleteEntry(state.editing);
+    closeSheet();
+    toast('Tankvorgang gelöscht.');
+  } catch (err) {
+    renderChecks({ errors: [], warns: [] }, 'Löschen fehlgeschlagen.');
+  } finally { act.disabled = false; }
+}
+
+async function onTankChange() {
+  const inp = $('#s-tank');
+  const v = parseNum(inp.value);
+  if (!(v >= 10 && v <= 200)) {
+    inp.value = inputNum(currentTank(), 1);
+    toast('Bitte einen Tankinhalt zwischen 10 und 200 Litern eingeben.');
+    return;
+  }
+  if (round(v, 1) === currentTank() || !state.store) return;
+  try {
+    await state.store.saveSettings({ ...state.settings, tankLiters: round(v, 1) });
+    toast('Tankinhalt gespeichert.');
+  } catch (err) {
+    inp.value = inputNum(currentTank(), 1);
+    toast('Speichern fehlgeschlagen.');
+  }
+}
+
+/* ===================== Sichern & Laden ===================== */
+// Öffnet auf dem iPhone das Teilen-Menü („In Dateien sichern“, AirDrop, Nachrichten …).
+// Wichtig: kein await vor navigator.share, sonst verweigert iOS das Teilen.
+async function shareFile(filename, data, mime) {
+  const file = new File([data], filename, { type: mime });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return 'shared'; }
+    catch (err) { if (err && err.name === 'AbortError') return 'cancelled'; }
+  }
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return 'downloaded';
+}
+
+async function exportData(kind) {
+  if (!state.entries.length) return;
+  const rows = state.sorted;
+  const stamp = todayISO();
+  let res;
+  if (kind === 'json') {
+    const data = JSON.stringify({ app: 'spritverbrauch', version: 1, exportedAt: new Date().toISOString(), settings: state.settings, entries: rows }, null, 2);
+    res = await shareFile('spritverbrauch-sicherung-' + stamp + '.json', data, 'application/json');
+    if (res !== 'cancelled') { meta.set({ lastBackupAt: new Date().toISOString() }); renderStatus(); toast('Sicherung erstellt.'); }
+  } else {
+    const head = ['Datum', 'Gefahrene km', 'Liter', 'Preis pro Liter (€)', 'Gesamtbetrag (€)', 'Vollgetankt', 'Verbrauch (l/100 km)'];
+    const lines = [head.join(';')];
+    for (const e of rows) {
+      const seg = state.an.segOf.get(e.id);
+      const cons = e.full && seg && seg.end === e && seg.l100 != null ? fixedNum(round(seg.l100, 1), 1) : '';
+      lines.push([fmtDate(e.date), inputNum(e.km, 1), fixedNum(e.liters, 2), fixedNum(e.pricePerLiter, 3), fixedNum(e.total, 2), e.full ? 'ja' : 'nein', cons].join(';'));
+    }
+    res = await shareFile('spritverbrauch-' + stamp + '.csv', '﻿' + lines.join('\r\n') + '\r\n', 'text/csv');
+  }
+}
+
+async function onImportFile() {
+  const input = $('#imp-file');
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  let obj;
+  try { obj = JSON.parse(await file.text()); } catch (e) { obj = null; }
+  const list = obj && obj.app === 'spritverbrauch' && Array.isArray(obj.entries) ? obj.entries.map(clean).filter(Boolean) : [];
+  if (!list.length) { toast('Diese Datei ist keine Sicherung dieser App.'); return; }
+  const known = new Set(state.entries.map(e => e.id));
+  const dupes = list.filter(e => known.has(e.id)).length;
+  state.pendingImport = { list, settings: obj.settings && typeof obj.settings === 'object' ? obj.settings : null };
+  const when = obj.exportedAt && !Number.isNaN(Date.parse(obj.exportedAt)) ? ' vom ' + fmtDate(toISO(new Date(obj.exportedAt))) : '';
+  $('#imp-text').textContent = 'Sicherung' + when + ' mit ' + plural(list.length, 'Tankvorgang', 'Tankvorgängen') + ' übernehmen? ' +
+    (dupes ? plural(dupes, 'Eintrag gibt', 'Einträge gibt') + ' es schon, sie werden durch die Sicherung ersetzt. ' : '') +
+    'Alle anderen Einträge auf diesem iPhone bleiben erhalten.';
+  $('#imp-confirm').hidden = false;
+}
+
+async function onImportConfirm() {
+  const p = state.pendingImport;
+  $('#imp-confirm').hidden = true;
+  state.pendingImport = null;
+  if (!p || !state.store) return;
+  try {
+    await state.store.saveMany(p.list);
+    const t = p.settings && Number(p.settings.tankLiters);
+    if (t >= 10 && t <= 200 && !state.settings.tankLiters) await state.store.saveSettings({ ...state.settings, tankLiters: t });
+    toast(plural(p.list.length, 'Tankvorgang', 'Tankvorgänge') + ' übernommen.');
+  } catch (err) {
+    toast('Laden fehlgeschlagen. Es wurde nichts verändert.');
+  }
+}
+
+let toastT = 0;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { t.hidden = true; }, 4500);
+}
+
+/* ===================== Start ===================== */
+function bindUI() {
+  F.form = $('#f-form'); F.date = $('#f-date'); F.km = $('#f-km'); F.l = $('#f-l'); F.p = $('#f-p');
+  F.full = $('#f-full'); F.total = $('#f-total'); F.preview = $('#f-preview'); F.checks = $('#f-checks'); F.save = $('#f-save');
+
+  $('#period').addEventListener('click', e => {
+    const b = e.target.closest('button[data-p]');
+    if (!b) return;
+    state.period = b.dataset.p;
+    try { localStorage.setItem('sv-period', state.period); } catch (err) {}
+    render();
+  });
+  $('#add').addEventListener('click', () => openSheet(null));
+  $('#list').addEventListener('click', e => {
+    const r = e.target.closest('button.row');
+    if (!r) return;
+    const en = state.entries.find(x => x.id === r.dataset.id);
+    if (en) openSheet(en);
+  });
+  $('#sheet-close').addEventListener('click', closeSheet);
+  $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
+  F.form.addEventListener('input', updateForm);
+  F.form.addEventListener('change', updateForm);
+  F.form.addEventListener('submit', onSubmit);
+  $('#del-zone').addEventListener('click', onDeleteZone);
+  $('#s-tank').addEventListener('change', onTankChange);
+  $('#x-json').addEventListener('click', () => exportData('json'));
+  $('#x-csv').addEventListener('click', () => exportData('csv'));
+  $('#banner-btn').addEventListener('click', () => exportData('json'));
+  $('#x-imp').addEventListener('click', () => $('#imp-file').click());
+  $('#imp-file').addEventListener('change', onImportFile);
+  $('#imp-yes').addEventListener('click', onImportConfirm);
+  $('#imp-no').addEventListener('click', () => { state.pendingImport = null; $('#imp-confirm').hidden = true; });
+
+  if ('ResizeObserver' in window) {
+    const ro = new ResizeObserver(list => {
+      for (const en of list) {
+        const h = en.target, w = Math.round(en.contentRect.width);
+        if (h._chart && w && w !== h._w) drawLine(h, ...h._chart);
+      }
+    });
+    ro.observe($('#ch-cons'));
+    ro.observe($('#ch-price'));
+  }
+}
+
+function init() {
+  bindUI();
+  render();
+  let store = null;
+  if (API_BASE) store = HttpStore(API_BASE);
+  else if (storageWorks()) store = LocalStore();
+  if (!store) { state.conn = 'unavailable'; render(); return; }
+  state.store = store;
+  if (store.kind === 'local' && navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  store.subscribe(
+    list => { state.entries = list.map(clean).filter(Boolean); state.loaded = true; state.conn = 'live'; render(); },
+    s => { state.settings = s && typeof s === 'object' ? s : {}; renderSettings(); },
+    () => { state.conn = 'error'; render(); }
+  );
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+init();
+})();
+</script>
+</body>
+</html>
