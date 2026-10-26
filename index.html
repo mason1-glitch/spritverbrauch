@@ -45,7 +45,7 @@
 *,*::before,*::after{box-sizing:border-box}
 html{background:var(--bg);-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 var(--f-body);-webkit-text-size-adjust:100%}
-button,input,output{font:inherit;color:inherit}
+button,input,output,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
@@ -61,6 +61,13 @@ button{cursor:pointer}
 .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:3px;background:var(--field);border:1px solid var(--line);border-radius:12px}
 .seg button{border:0;background:transparent;border-radius:9px;min-height:40px;padding:8px 4px;font:600 15px/1.1 var(--f-body);color:var(--ink-2)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.cars{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.cars::-webkit-scrollbar{display:none}
+.cars button{flex:none;display:block;min-height:44px;max-width:70%;padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink-2);font:600 15px/1.1 var(--f-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cars button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.cars .add{display:grid;place-items:center;width:44px;padding:0}
+.cars .add svg{width:20px;height:20px}
+.cars button:disabled{opacity:.45;cursor:not-allowed}
 
 .banner{background:var(--warn-soft);color:var(--ink);border-radius:var(--r-s);padding:12px 14px;font-size:15px;display:grid;gap:10px}
 .banner p{margin:0}
@@ -138,6 +145,15 @@ button.row:hover{background:var(--field)}
 .block{display:grid;gap:8px}
 .block .k{font-weight:600}
 .hint{margin:0;font-size:13.5px;color:var(--muted);max-width:62ch}
+.carlist{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:var(--r-s);overflow:hidden}
+.carrow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:56px;padding:10px 12px;border:0;background:transparent;text-align:left}
+.carlist li+li .carrow{border-top:1px solid var(--line)}
+button.carrow:hover{background:var(--field)}
+.carrow:disabled{opacity:.6;cursor:not-allowed}
+.carrow>span:first-child{display:grid;gap:2px;min-width:0}
+.carrow b{font-weight:600;overflow-wrap:anywhere}
+.carrow small{font-size:13.5px;color:var(--muted)}
+.carrow .edit{flex:none;font-size:15px;font-weight:600;color:var(--accent)}
 .tank-in{display:inline-flex;align-items:center;gap:6px}
 .tank-in input{width:5.5em;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--field);font-size:16px;text-align:right;font-variant-numeric:tabular-nums}
 .btns{display:flex;flex-wrap:wrap;gap:8px}
@@ -164,7 +180,13 @@ button.row:hover{background:var(--field)}
 .x svg{width:18px;height:18px}
 .form{display:grid;gap:14px}
 .f-date{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600}
-.f-date input{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 12px;font-size:17px;min-height:44px}
+.f-date input,.f-date select{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 12px;font-size:17px;min-height:44px}
+.f-date select{min-width:0;max-width:65%}
+.fld{display:grid;gap:6px;font-weight:600}
+.fld>input{width:100%;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 12px;font-size:17px;font-weight:400;min-height:44px}
+.fld .tank-in{font-weight:400}
+.fld .tank-in input{min-height:44px;font-size:17px}
+.fld small{font-size:13.5px;font-weight:400;color:var(--muted)}
 
 .lcd{background:var(--lcd-bg);border-radius:14px;padding:6px 14px;display:grid;box-shadow:inset 0 0 0 1px var(--lcd-edge)}
 .lcd-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:10px 0;cursor:text}
@@ -173,7 +195,8 @@ button.row:hover{background:var(--field)}
 .lcd-label small{font-weight:500;letter-spacing:0;text-transform:none;font-size:12.5px}
 .lcd-field{display:flex;align-items:baseline;gap:6px;background:var(--lcd-well);border:1px solid var(--lcd-edge);border-radius:8px;padding:4px 10px}
 .lcd input,.lcd output{width:4.4em;border:0;background:transparent;text-align:right;font:400 28px/1.15 var(--f-lcd);color:var(--lcd-fg);padding:0;outline:none;font-variant-numeric:tabular-nums}
-.lcd.odo input{color:var(--lcd-text)}
+.lcd.odo input,.lcd.odo output{color:var(--lcd-text)}
+.lcd .calc .lcd-field{background:transparent;border-color:transparent}
 .lcd input::placeholder{color:var(--lcd-ph);opacity:1}
 .lcd-field:focus-within{border-color:var(--lcd-fg);box-shadow:0 0 0 2px color-mix(in srgb,var(--lcd-fg) 35%,transparent)}
 .lcd-unit{color:var(--lcd-label);font:500 15px/1 var(--f-body);width:1.4em}
@@ -215,6 +238,7 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
       <h1>Sprit<span>verbrauch</span></h1>
       <span class="bk" id="bk-state"></span>
     </div>
+    <div class="cars" id="cars" role="group" aria-label="Auto" hidden></div>
     <div class="seg" id="period" role="group" aria-label="Zeitraum">
       <button type="button" data-p="month" aria-pressed="true">Dieser Monat</button>
       <button type="button" data-p="year" aria-pressed="false">Dieses Jahr</button>
@@ -242,6 +266,11 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
 
   <section class="card" aria-labelledby="h-cons">
     <div class="card-h"><h2 id="h-cons">Verbrauch</h2><p>l/100 km je Volltankung</p></div>
+    <dl class="pstats">
+      <div><dt>Niedrigster</dt><dd id="c-min">–</dd><small id="c-min-d">&nbsp;</small></div>
+      <div><dt>Durchschnitt</dt><dd id="c-avg">–</dd><small>nach Strecke</small></div>
+      <div><dt>Höchster</dt><dd id="c-max">–</dd><small id="c-max-d">&nbsp;</small></div>
+    </dl>
     <div class="chart" id="ch-cons" tabindex="0" aria-label="Verlauf des Verbrauchs. Mit den Pfeiltasten durch die Werte gehen."></div>
   </section>
 
@@ -260,10 +289,10 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
     <div class="empty" id="empty" hidden>
       <p><b>Noch keine Tankvorgänge.</b> So geht’s beim nächsten Tanken:</p>
       <ol>
-        <li>Tageskilometerzähler ablesen, bevor du ihn zurücksetzt.</li>
+        <li>Kilometerstand am Tacho ablesen.</li>
         <li>Liter und Preis pro Liter von der Zapfsäule übernehmen.</li>
-        <li>Tageskilometerzähler auf null stellen.</li>
       </ol>
+      <p class="hint">Der erste Eintrag ist der Startpunkt. Den Verbrauch zeigt die App ab der nächsten Volltankung.</p>
     </div>
     <ul class="list" id="list"><li class="list-note">Lade Tankvorgänge…</li></ul>
   </section>
@@ -271,13 +300,13 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
   <section class="card info" aria-label="Einstellungen und Daten">
     <details>
       <summary>So wird gerechnet</summary>
-      <p>Der Verbrauch folgt der Volltank-Methode: Von einer Volltankung bis zur nächsten werden alle getankten Liter und gefahrenen Kilometer addiert. Liter ÷ km × 100 ergibt l/100 km. Teilbetankungen haben deshalb keinen eigenen Wert, sie fließen in die nächste Volltankung ein. Die Kosten pro 100 km stammen aus denselben Abschnitten. Ein Abschnitt zählt zu dem Zeitraum, in dem die abschließende Volltankung liegt. Beim allerersten Eintrag nimmt die App an, dass davor vollgetankt wurde. Der durchschnittliche Literpreis ist nach getankter Menge gewichtet.</p>
+      <p>Jedes Auto wird für sich gerechnet. Die gefahrenen km ergeben sich aus der Differenz der Kilometerstände zweier Tankvorgänge. Der Verbrauch folgt der Volltank-Methode: Von einer Volltankung bis zur nächsten werden alle getankten Liter und gefahrenen Kilometer addiert. Liter ÷ km × 100 ergibt l/100 km. Teilbetankungen haben deshalb keinen eigenen Wert, sie fließen in die nächste Volltankung ein. Die Kosten pro 100 km stammen aus denselben Abschnitten. Ein Abschnitt zählt zu dem Zeitraum, in dem die abschließende Volltankung liegt. Der erste Eintrag eines Autos ist der Startpunkt: Für ihn fehlen die km davor, deshalb gibt es den ersten Verbrauch bei der nächsten Volltankung. Der durchschnittliche Literpreis ist nach getankter Menge gewichtet, der durchschnittliche Verbrauch nach gefahrener Strecke.</p>
     </details>
 
     <div class="block">
-      <label class="k" for="s-tank">Tankinhalt</label>
-      <span class="tank-in"><input id="s-tank" inputmode="decimal" autocomplete="off" aria-describedby="s-tank-hint"> l</span>
-      <p class="hint" id="s-tank-hint">Golf 8 GTI: 50 l. Grundlage für die Prüfung, ob km und Liter zu einer Tankfüllung passen.</p>
+      <span class="k">Autos</span>
+      <ul class="carlist" id="carlist"></ul>
+      <div class="btns"><button type="button" class="btn-s" id="car-new">Auto hinzufügen</button></div>
     </div>
 
     <div class="block" id="data-block">
@@ -315,13 +344,22 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
       <button type="button" class="x" id="sheet-close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <form class="form" id="f-form" novalidate autocomplete="off">
+      <label class="f-date" for="f-car" id="f-car-row" hidden>Auto <select id="f-car"></select></label>
       <label class="f-date" for="f-date">Datum <input type="date" id="f-date" required></label>
 
       <div class="lcd odo">
-        <label class="lcd-row" for="f-km">
-          <span class="lcd-label">Gefahrene km<small>laut Tageskilometerzähler</small></span>
+        <label class="lcd-row" for="f-odo">
+          <span class="lcd-label">Kilometerstand<small>Gesamt-km laut Tacho</small></span>
+          <span class="lcd-field"><input id="f-odo" inputmode="numeric" placeholder="0" enterkeyhint="next"><span class="lcd-unit">km</span></span>
+        </label>
+        <label class="lcd-row" for="f-km" id="f-trip-row" hidden>
+          <span class="lcd-label">Gefahrene km<small id="f-trip-hint"></small></span>
           <span class="lcd-field"><input id="f-km" inputmode="decimal" placeholder="0,0" enterkeyhint="next"><span class="lcd-unit">km</span></span>
         </label>
+        <div class="lcd-row calc" id="f-dist-row" hidden>
+          <span class="lcd-label">Gefahren<small id="f-dist-hint"></small></span>
+          <span class="lcd-field"><output id="f-dist" for="f-odo">–</output><span class="lcd-unit">km</span></span>
+        </div>
       </div>
 
       <div class="lcd pump">
@@ -361,6 +399,37 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
   </div>
 </div>
 
+<div class="sheet" id="car-sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="car-title">
+    <div class="panel-h">
+      <h2 id="car-title">Auto hinzufügen</h2>
+      <button type="button" class="x" id="car-close" aria-label="Schließen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <form class="form" id="c-form" novalidate autocomplete="off">
+      <label class="fld" for="c-name">Name
+        <input id="c-name" maxlength="40" placeholder="z. B. Polo" autocapitalize="words" enterkeyhint="next">
+      </label>
+      <label class="fld" for="c-tank">Tankvolumen
+        <span class="tank-in"><input id="c-tank" inputmode="decimal" placeholder="z. B. 50" enterkeyhint="done"> l</span>
+        <small>Damit prüft die App, ob km und Liter zu einer Tankfüllung passen.</small>
+      </label>
+
+      <div class="checks" id="c-checks" role="alert" hidden></div>
+
+      <button type="submit" class="save" id="c-save">Auto hinzufügen</button>
+
+      <div class="del-zone" id="c-del" hidden>
+        <button type="button" class="btn-ghost danger" data-act="ask">Auto löschen</button>
+        <div class="del-confirm" hidden>
+          <span id="c-del-text"></span>
+          <button type="button" class="btn-danger" data-act="yes">Löschen</button>
+          <button type="button" class="btn-ghost" data-act="no">Abbrechen</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
@@ -374,6 +443,7 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
  *   store.saveEntry(entry)    anlegen oder ersetzen (Schlüssel: entry.id)
  *   store.saveMany(entries)   mehrere auf einmal (Sicherung laden)
  *   store.deleteEntry(id)
+ *   store.deleteMany(ids)     mehrere auf einmal (Auto löschen)
  *   store.saveSettings(obj)
  *
  * Jetzt:  LocalStore – speichert auf dem Gerät (localStorage der Home-Bildschirm-App).
@@ -381,9 +451,12 @@ input[role="switch"]:checked::before{transform:translateX(22px)}
  *   GET    api/entries        -> [Eintrag, …]
  *   PUT    api/entries/{id}   Body: Eintrag (anlegen oder ersetzen)
  *   DELETE api/entries/{id}
- *   GET    api/settings       -> {tankLiters}
- *   PUT    api/settings       Body: {tankLiters}
- * Eintrag: {id, date:"JJJJ-MM-TT", km, liters, pricePerLiter, total, full, createdAt, updatedAt}
+ *   GET    api/settings       -> {cars: [{id, name, tankLiters}]}
+ *   PUT    api/settings       Body: {cars: [{id, name, tankLiters}]}
+ * Eintrag: {id, carId, date:"JJJJ-MM-TT", km, odo, liters, pricePerLiter, total, full, createdAt, updatedAt}
+ *   carId und odo (Kilometerstand) sind optional. Alte Einträge haben beides nicht: Sie gehören zu DEFAULT_CAR,
+ *   und km ist der Wert vom Tageskilometerzähler. Mit odo ist km die Differenz zum Kilometerstand beim Tanken davor.
+ *   Alte Einstellungen kennen nur {tankLiters} – dann gibt es genau ein Auto (DEFAULT_CAR).
  * Umzug: „Sicherung teilen“ (JSON) auf dem iPhone, danach mit „Sicherung laden“ in die Server-Version einlesen.
  */
 const API_BASE = '';
@@ -433,6 +506,7 @@ function LocalStore() {
       commit({ ...data, entries });
     },
     async deleteEntry(id) { const entries = { ...data.entries }; delete entries[id]; commit({ ...data, entries }); },
+    async deleteMany(ids) { const entries = { ...data.entries }; for (const id of ids) delete entries[id]; commit({ ...data, entries }); },
     async saveSettings(s) { commit({ ...data, settings: { ...s } }); },
   };
 }
@@ -470,6 +544,7 @@ function HttpStore(base) {
     async saveEntry(e) { await req('PUT', 'entries/' + encodeURIComponent(e.id), e); refresh(); },
     async saveMany(list) { for (const e of list) await req('PUT', 'entries/' + encodeURIComponent(e.id), e); refresh(); },
     async deleteEntry(id) { await req('DELETE', 'entries/' + encodeURIComponent(id)); refresh(); },
+    async deleteMany(ids) { for (const id of ids) await req('DELETE', 'entries/' + encodeURIComponent(id)); refresh(); },
     async saveSettings(s) { await req('PUT', 'settings', s); refresh(); },
   };
 }
@@ -482,6 +557,8 @@ const meta = {
 
 /* ===================== Grundwerte & Formate ===================== */
 const MIN_L100 = 3, MAX_L100 = 20, PRICE_MIN = 1, PRICE_MAX = 3, DEFAULT_TANK = 50;
+const DEFAULT_CAR = 'standard', DEFAULT_CAR_NAME = 'Golf 8 GTI';
+const ID_RE = /^[\w.~:@+-]{1,80}$/;
 const BACKUP_DAYS = 30;
 const DAY = 864e5;
 const $ = (s, r = document) => r.querySelector(s);
@@ -511,9 +588,12 @@ const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new D
 const fmtDate = s => { const d = parseISO(s); return d.getDate() + '.' + (d.getMonth() + 1) + '.' + d.getFullYear(); };
 const fmtDayMonth = s => { const d = parseISO(s); return d.getDate() + '.' + (d.getMonth() + 1) + '.'; };
 const round = (v, d) => Math.round(v * 10 ** d) / 10 ** d;
-const sum = (list, key) => list.reduce((a, x) => a + x[key], 0);
+const sum = (list, key) => list.reduce((a, x) => a + (x[key] || 0), 0);
 const plural = (n, one, many) => n + ' ' + (n === 1 ? one : many);
-const newId = () => 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const newId = (prefix = 'e') => prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const isNum = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+const carOf = e => e.carId || DEFAULT_CAR;
 
 function parseNum(str) {
   let s = String(str == null ? '' : str).replace(/[\s€]/g, '');
@@ -527,30 +607,86 @@ function parseNum(str) {
 function clean(raw) {
   const num = v => typeof v === 'number' && Number.isFinite(v) ? v
     : typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v)) ? Number(v) : null;
-  if (!raw || typeof raw.id !== 'string' || !/^[\w.~:@+-]{1,80}$/.test(raw.id) || !/^\d{4}-\d{2}-\d{2}$/.test(raw.date || '')) return null;
-  const km = num(raw.km), liters = num(raw.liters), price = num(raw.pricePerLiter);
+  if (!raw || typeof raw.id !== 'string' || !ID_RE.test(raw.id) || !/^\d{4}-\d{2}-\d{2}$/.test(raw.date || '')) return null;
+  const km = num(raw.km), liters = num(raw.liters), price = num(raw.pricePerLiter), odo = num(raw.odo);
   if (km == null || liters == null || price == null) return null;
   const total = num(raw.total);
-  return {
+  const e = {
     id: raw.id, date: raw.date, km, liters, pricePerLiter: price,
     total: total == null ? round(liters * price, 2) : total,
     full: raw.full !== false,
     createdAt: String(raw.createdAt || ''), updatedAt: String(raw.updatedAt || ''),
   };
+  // Neuere, optionale Felder: Auto und Kilometerstand
+  if (typeof raw.carId === 'string' && ID_RE.test(raw.carId)) e.carId = raw.carId;
+  if (odo != null && odo >= 0) e.odo = odo;
+  return e;
+}
+
+// Autos aus den Einstellungen. Ohne Liste (alte Stände mit {tankLiters}) gibt es genau ein Auto: DEFAULT_CAR.
+function cleanCars(s) {
+  const okTank = t => Number(t) >= 10 && Number(t) <= 200;
+  const out = [];
+  for (const c of Array.isArray(s && s.cars) ? s.cars : []) {
+    if (!c || typeof c.id !== 'string' || !ID_RE.test(c.id) || out.some(x => x.id === c.id)) continue;
+    out.push({ id: c.id, name: String(c.name || '').trim().slice(0, 40) || 'Auto', tankLiters: okTank(c.tankLiters) ? Number(c.tankLiters) : DEFAULT_TANK });
+  }
+  if (!out.length) out.push({ id: DEFAULT_CAR, name: DEFAULT_CAR_NAME, tankLiters: okTank(s && s.tankLiters) ? Number(s.tankLiters) : DEFAULT_TANK });
+  return out;
+}
+
+// Ergänzt Autos, die nur in Einträgen vorkommen (z. B. aus einer Sicherung), damit keine Daten unsichtbar werden.
+function allCars(settings, entries) {
+  const cars = cleanCars(settings);
+  for (const e of entries) {
+    const id = carOf(e);
+    if (!cars.some(c => c.id === id)) cars.push({ id, name: id === DEFAULT_CAR ? DEFAULT_CAR_NAME : 'Weiteres Auto', tankLiters: DEFAULT_TANK });
+  }
+  return cars;
 }
 
 /* ===================== Berechnung ===================== */
 function sortEntries(list) {
   return list.slice().sort((a, b) =>
-    a.date < b.date ? -1 : a.date > b.date ? 1 : a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
+    a.date < b.date ? -1 : a.date > b.date ? 1
+    : a.odo != null && b.odo != null && a.odo !== b.odo ? a.odo - b.odo
+    : a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0);
+}
+// Gefahrene km je Eintrag (dist), Liste eines Autos: Differenz zum Kilometerstand beim Tanken davor. Fehlt einer
+// der beiden Stände, gilt der eingetragene Wert vom Tageskilometerzähler. null = unbekannt, der Eintrag ist ein Startpunkt.
+function withDistance(sorted) {
+  return sorted.map((e, i) => {
+    const p = sorted[i - 1];
+    const dist = e.odo == null ? e.km
+      : p && p.odo != null ? (e.odo >= p.odo ? round(e.odo - p.odo, 1) : null)
+      : e.km > 0 ? e.km : null;
+    return { ...e, dist };
+  });
+}
+// Gespeicherte km aus den Kilometerständen nachziehen, z. B. wenn ein Eintrag davor geändert oder gelöscht wurde.
+function kmFixes(entries) {
+  const fixes = [];
+  for (const id of new Set(entries.map(carOf))) {
+    let prev = null;
+    for (const e of sortEntries(entries.filter(x => carOf(x) === id))) {
+      if (e.odo != null && prev && prev.odo != null && e.odo >= prev.odo) {
+        const km = round(e.odo - prev.odo, 1);
+        if (km !== e.km) fixes.push({ ...e, km, updatedAt: new Date().toISOString() });
+      }
+      prev = e;
+    }
+  }
+  return fixes;
 }
 function makeSegment(list, closed) {
-  const km = sum(list, 'km'), liters = sum(list, 'liters'), cost = sum(list, 'total');
-  const ok = closed && km > 0;
-  return { entries: list, closed, end: list[list.length - 1], km, liters, cost,
+  const start = list.some(x => x.dist == null);
+  const km = sum(list, 'dist'), liters = sum(list, 'liters'), cost = sum(list, 'total');
+  const ok = closed && !start && km > 0;
+  return { entries: list, closed, start, end: list[list.length - 1], km, liters, cost,
     l100: ok ? liters / km * 100 : null, c100: ok ? cost / km * 100 : null };
 }
 // Volltank-Methode: Alles nach einer Volltankung bis einschließlich der nächsten bildet einen Abschnitt.
+// Sind die km eines Eintrags unbekannt (Startpunkt), hat sein Abschnitt keinen Verbrauch.
 function analyse(sorted) {
   const segments = [], segOf = new Map();
   let open = [];
@@ -581,39 +717,56 @@ function periodName(p) {
 function stats(sorted, an, p) {
   const today = todayISO();
   const ents = sorted.filter(e => inPeriod(e.date, p, today));
-  const segs = an.segments.filter(s => s.km > 0 && inPeriod(s.end.date, p, today));
+  const segs = an.segments.filter(s => s.l100 != null && inPeriod(s.end.date, p, today));
   const segKm = sum(segs, 'km');
-  const cost = sum(ents, 'total'), km = sum(ents, 'km'), liters = sum(ents, 'liters');
-  let pMin = null, pMax = null;
+  const cost = sum(ents, 'total'), km = sum(ents, 'dist'), liters = sum(ents, 'liters');
+  let pMin = null, pMax = null, cMin = null, cMax = null;
   for (const e of ents) {
     if (!pMin || e.pricePerLiter < pMin.pricePerLiter) pMin = e;
     if (!pMax || e.pricePerLiter > pMax.pricePerLiter) pMax = e;
   }
+  for (const s of segs) {
+    if (!cMin || s.l100 < cMin.l100) cMin = s;
+    if (!cMax || s.l100 > cMax.l100) cMax = s;
+  }
   return {
-    ents, segs, segKm, cost, km, liters, pMin, pMax,
+    ents, segs, segKm, cost, km, liters, pMin, pMax, cMin, cMax,
     l100: segKm > 0 ? sum(segs, 'liters') / segKm * 100 : null,
     c100: segKm > 0 ? sum(segs, 'cost') / segKm * 100 : null,
     pAvg: liters > 0 ? cost / liters : null,
   };
 }
 
-function currentTank() { const t = Number(state.settings.tankLiters); return t > 0 ? t : DEFAULT_TANK; }
-
-function plausibility(d, seg) {
+// x: Ergebnis von evalDraft()
+function plausibility(x) {
+  const { d, seg } = x;
   const errors = [], warns = [];
+  const bad = v => Number.isNaN(v) || v < 0;
   if (!d.date) errors.push('Bitte ein Datum wählen.');
-  if (d.km == null) errors.push('Bitte die gefahrenen km eintragen.');
-  else if (Number.isNaN(d.km) || d.km < 0) errors.push('Die gefahrenen km sind keine gültige Zahl.');
+  if (d.odo == null) { if (!x.legacy) errors.push('Bitte den Kilometerstand eintragen.'); }
+  else if (bad(d.odo)) errors.push('Der Kilometerstand ist keine gültige Zahl.');
+  if (x.showTrip) {
+    if (d.trip == null) { if (x.legacy && d.odo == null) errors.push('Bitte die gefahrenen km eintragen.'); }
+    else if (bad(d.trip)) errors.push('Die gefahrenen km sind keine gültige Zahl.');
+  }
   if (d.liters == null) errors.push('Bitte die getankten Liter eintragen.');
   else if (Number.isNaN(d.liters) || d.liters <= 0) errors.push('Die Liter sind keine gültige Zahl.');
   if (d.pricePerLiter == null) errors.push('Bitte den Preis pro Liter eintragen.');
   else if (Number.isNaN(d.pricePerLiter) || d.pricePerLiter <= 0) errors.push('Der Preis pro Liter ist keine gültige Zahl.');
+  if (!errors.length && isNum(d.odo)) {
+    if (x.prev && x.prev.odo != null && d.odo < x.prev.odo)
+      errors.push('Der Kilometerstand ist kleiner als beim Tanken am ' + fmtDate(x.prev.date) + ' (' + fmt.km(x.prev.odo) + ' km).');
+    if (x.next && x.next.odo != null && d.odo > x.next.odo)
+      errors.push('Der Kilometerstand ist größer als beim Tanken am ' + fmtDate(x.next.date) + ' (' + fmt.km(x.next.odo) + ' km).');
+  }
   if (errors.length) return { errors, warns };
 
-  const tank = currentTank();
+  const tank = x.car.tankLiters;
   const maxKm = tank / MIN_L100 * 100;
-  if (d.km === 0) warns.push('0 km seit dem letzten Tanken. Hast du den Tageskilometerzähler abgelesen?');
-  else if (d.km > maxKm) warns.push(fmt.kmExact(d.km) + ' km sind mehr, als eine Tankfüllung von ' + inputNum(tank, 1) + ' l hergibt (höchstens etwa ' + fmt.km(round(maxKm, -1)) + ' km).');
+  if (x.dist === 0) warns.push(x.viaOdo ? 'Seit dem letzten Tanken 0 km. Stimmt der Kilometerstand?' : '0 km seit dem letzten Tanken. Hast du den Tageskilometerzähler abgelesen?');
+  else if (x.dist > maxKm) warns.push(fmt.kmExact(x.dist) + ' km seit dem letzten Tanken sind mehr, als eine Tankfüllung von ' + inputNum(tank, 1) + ' l hergibt (höchstens etwa ' + fmt.km(round(maxKm, -1)) + ' km).' + (x.viaOdo ? ' Stimmt der Kilometerstand?' : ''));
+  else if (x.dist == null && x.prev && !x.legacy)
+    warns.push('Ohne die gefahrenen km fehlt der Verbrauch für diese Tankfüllung. Trag sie dieses eine Mal vom Tageskilometerzähler ein, ab dem nächsten Tanken reicht der Kilometerstand.');
   if (d.liters > tank * 1.05) warns.push(fmt.l(d.liters) + ' l sind mehr, als der Tank fasst (' + inputNum(tank, 1) + ' l).');
   if (d.pricePerLiter < PRICE_MIN || d.pricePerLiter > PRICE_MAX)
     warns.push('Ein Literpreis von ' + fmt.price(d.pricePerLiter) + ' wirkt unrealistisch. Üblich sind 1,00 bis 3,00 €.');
@@ -624,29 +777,36 @@ function plausibility(d, seg) {
 
 /* ===================== Zustand ===================== */
 const state = {
-  entries: [], settings: {}, period: 'month', conn: 'connecting', loaded: false, store: null,
-  editing: null, draftId: null, attempted: false, saving: false, pendingImport: null,
-  sorted: [], an: { segments: [], pending: null, segOf: new Map() },
+  entries: [], settings: {}, period: 'month', car: null, conn: 'connecting', loaded: false, store: null,
+  editing: null, draftId: null, attempted: false, saving: false, pendingImport: null, carEditing: null,
+  // abgeleitet in render(): alle Autos, das gewählte Auto und dessen Einträge (mit dist)
+  cars: [], active: null, sorted: [], an: { segments: [], pending: null, segOf: new Map() },
 };
 try { const p = localStorage.getItem('sv-period'); if (PERIODS[p]) state.period = p; } catch (e) {}
+try { state.car = localStorage.getItem('sv-car'); } catch (e) {}
 
 const IS_IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const IS_STANDALONE = navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
 
 const ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18v.01"/></svg>';
+const ICON_PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>';
 
 /* ===================== Darstellung ===================== */
 function render() {
-  state.sorted = sortEntries(state.entries);
+  state.cars = allCars(state.settings, state.entries);
+  state.active = state.cars.find(c => c.id === state.car) || state.cars[0];
+  state.sorted = withDistance(sortEntries(state.entries.filter(e => carOf(e) === state.active.id)));
   state.an = analyse(state.sorted);
   const st = stats(state.sorted, state.an, state.period);
   renderStatus();
+  renderCars();
   renderPeriod();
   renderKpis(st);
   renderCharts(st);
   renderList(st);
-  renderSettings();
 }
+
+const canWrite = () => !!state.store && state.conn === 'live';
 
 function daysSince(iso) { return iso ? Math.floor((Date.now() - new Date(iso).getTime()) / DAY) : null; }
 
@@ -671,13 +831,29 @@ function renderStatus() {
   bb.hidden = !btn;
   $('#banner').hidden = !msg;
 
-  const canWrite = !!state.store && state.conn === 'live';
-  $('#add').disabled = !canWrite;
-  $('#s-tank').disabled = !canWrite;
+  $('#add').disabled = !canWrite();
+  $('#car-new').disabled = !canWrite();
   for (const id of ['#x-json', '#x-csv']) $(id).disabled = !state.entries.length;
-  $('#x-imp').disabled = !canWrite;
+  $('#x-imp').disabled = !canWrite();
   $('#data-hint').hidden = !isLocal;
   $('#where').textContent = state.store ? 'Gespeichert: ' + state.store.label : '';
+}
+
+// Auswahl im Kopf (erst ab zwei Autos) und Liste unter „Autos“
+function renderCars() {
+  const write = canWrite();
+  const box = $('#cars');
+  const chips = state.cars.length < 2 ? '' : state.cars.map(c =>
+    '<button type="button" data-car="' + esc(c.id) + '" aria-pressed="' + (c === state.active) + '">' + esc(c.name) + '</button>').join('') +
+    '<button type="button" class="add" data-add aria-label="Auto hinzufügen"' + (write ? '' : ' disabled') + '>' + ICON_PLUS + '</button>';
+  if (box._html !== chips) { box.innerHTML = chips; box._html = chips; }
+  box.hidden = !chips;
+  $('#carlist').innerHTML = state.cars.map(c => {
+    const n = state.entries.filter(e => carOf(e) === c.id).length;
+    return '<li><button type="button" class="carrow" data-car="' + esc(c.id) + '"' + (write ? '' : ' disabled') + '>' +
+      '<span><b>' + esc(c.name) + '</b><small>' + inputNum(c.tankLiters, 1) + ' l Tank · ' + plural(n, 'Tankvorgang', 'Tankvorgänge') + '</small></span>' +
+      '<span class="edit">Bearbeiten</span></button></li>';
+  }).join('');
 }
 
 function renderPeriod() {
@@ -685,10 +861,12 @@ function renderPeriod() {
 }
 
 function renderKpis(st) {
+  const hasCons = state.an.segments.some(s => s.l100 != null);
   $('#k-period').textContent = periodName(state.period);
   $('#k-l100').textContent = st.l100 == null ? '–' : fmt.l100(st.l100);
   $('#k-l100-sub').textContent = !state.loaded ? (state.conn === 'connecting' ? 'Lade Daten…' : 'Keine Daten verfügbar')
     : st.segs.length ? 'aus ' + plural(st.segs.length, 'Volltankung', 'Volltankungen') + ' über ' + fmt.km(st.segKm) + ' km'
+    : state.sorted.length && !hasCons ? 'Erscheint nach der nächsten Volltankung'
     : st.ents.length ? 'Noch keine abgeschlossene Volltankung in diesem Zeitraum'
     : 'Noch keine Tankvorgänge in diesem Zeitraum';
   $('#k-c100').textContent = st.c100 == null ? '–' : fmt.eur(st.c100);
@@ -703,10 +881,17 @@ function renderKpis(st) {
   $('#p-max').textContent = st.pMax ? fmt.price(st.pMax.pricePerLiter) : '–';
   $('#p-max-d').textContent = st.pMax ? 'am ' + fmtDayMonth(st.pMax.date) : ' ';
   $('#p-avg').textContent = st.pAvg == null ? '–' : fmt.price(st.pAvg);
+
+  $('#c-min').textContent = st.cMin ? fmt.l100(st.cMin.l100) : '–';
+  $('#c-min-d').textContent = st.cMin ? 'am ' + fmtDayMonth(st.cMin.end.date) : ' ';
+  $('#c-max').textContent = st.cMax ? fmt.l100(st.cMax.l100) : '–';
+  $('#c-max-d').textContent = st.cMax ? 'am ' + fmtDayMonth(st.cMax.end.date) : ' ';
+  $('#c-avg').textContent = st.l100 == null ? '–' : fmt.l100(st.l100);
 }
 
 function renderCharts(st) {
-  const any = state.entries.length > 0;
+  const any = state.sorted.length > 0;
+  const hasCons = state.an.segments.some(s => s.l100 != null);
   const consPts = st.segs.map(s => ({
     t: parseISO(s.end.date).getTime(), v: s.l100, date: s.end.date,
     sub: fmt.kmExact(s.km) + ' km · ' + fmt.l(s.liters) + ' l' +
@@ -715,7 +900,8 @@ function renderCharts(st) {
   drawLine($('#ch-cons'), consPts, {
     color: 'var(--accent)', minSpan: 1,
     valueText: v => fmt.l100(v) + ' l/100 km', short: v => fmt.l100(v),
-    empty: !state.loaded ? 'Lade Daten…' : any ? 'In diesem Zeitraum gibt es noch keine abgeschlossene Volltankung.' : 'Erscheint nach der ersten Volltankung.',
+    empty: !state.loaded ? 'Lade Daten…' : !any ? 'Erscheint, sobald zwei Volltankungen eingetragen sind.'
+      : !hasCons ? 'Erscheint nach der nächsten Volltankung.' : 'In diesem Zeitraum gibt es noch keine abgeschlossene Volltankung.',
   });
   const pricePts = st.ents.map(e => ({
     t: parseISO(e.date).getTime(), v: e.pricePerLiter, date: e.date,
@@ -735,6 +921,7 @@ function chipFor(e) {
     return '<span class="chip' + (odd ? ' warn' : '') + '">' + (odd ? ICON_WARN : '<i></i>') + fmt.l100(seg.l100) + ' l/100 km' +
       (seg.entries.length > 1 ? ' · inkl. ' + plural(seg.entries.length - 1, 'Teilbetankung', 'Teilbetankungen') : '') + '</span>';
   }
+  if (seg && seg.start && seg.closed) return '<span class="chip part">' + (e.full ? 'Startpunkt · ab hier wird gerechnet' : 'Teilbetankung · vor dem Startpunkt') + '</span>';
   if (e.full) return '<span class="chip part">Volltankung ohne km</span>';
   if (seg && seg.closed) return '<span class="chip part">Teilbetankung · zählt zum ' + fmtDayMonth(seg.end.date) + '</span>';
   return '<span class="chip part">Teilbetankung · wartet auf Volltankung</span>';
@@ -749,8 +936,8 @@ function renderList(st) {
     ul.innerHTML = '<li class="list-note">' + (state.conn === 'connecting' ? 'Lade Tankvorgänge…' : 'Keine Daten verfügbar.') + '</li>';
     return;
   }
-  empty.hidden = state.entries.length > 0;
-  if (!state.entries.length) { ul.innerHTML = ''; return; }
+  empty.hidden = state.sorted.length > 0;
+  if (!state.sorted.length) { ul.innerHTML = ''; return; }
   if (!st.ents.length) {
     ul.innerHTML = '<li class="list-note">Keine Tankvorgänge ' + (state.period === 'month' ? 'in diesem Monat' : 'in diesem Jahr') + '. Unter „Gesamt“ siehst du alle.</li>';
     return;
@@ -762,15 +949,10 @@ function renderList(st) {
     if (mk !== lastMonth) { html += '<li class="month">' + MONTHS[d.getMonth()] + ' ' + d.getFullYear() + '</li>'; lastMonth = mk; }
     html += '<li><button type="button" class="row" data-id="' + e.id + '" aria-label="Tankvorgang vom ' + fmtDate(e.date) + ' bearbeiten">' +
       '<span class="r-date"><b>' + d.getDate() + '.</b><small>' + WEEKDAYS[d.getDay()] + '</small></span>' +
-      '<span class="r-main"><span class="r-figs">' + fmt.kmExact(e.km) + ' km · ' + fmt.l(e.liters) + ' l · ' + nf(3).format(e.pricePerLiter) + ' €/l</span>' + chipFor(e) + '</span>' +
+      '<span class="r-main"><span class="r-figs">' + (e.dist == null ? 'Stand ' + fmt.km(e.odo) : fmt.kmExact(e.dist)) + ' km · ' + fmt.l(e.liters) + ' l · ' + nf(3).format(e.pricePerLiter) + ' €/l</span>' + chipFor(e) + '</span>' +
       '<span class="r-sum">' + fmt.eur(e.total) + '</span></button></li>';
   }
   ul.innerHTML = html;
-}
-
-function renderSettings() {
-  const inp = $('#s-tank');
-  if (document.activeElement !== inp) inp.value = inputNum(currentTank(), 1);
 }
 
 /* ===================== Diagramm ===================== */
@@ -922,20 +1104,55 @@ function readDraft() {
   const existing = state.editing && state.entries.find(e => e.id === state.editing);
   return {
     id: state.draftId,
+    carId: F.car.value || state.active.id,
     date: F.date.value,
-    km: parseNum(F.km.value),
+    odo: parseNum(F.odo.value),
+    trip: parseNum(F.km.value),
     liters: parseNum(F.l.value),
     pricePerLiter: parseNum(F.p.value),
     full: F.full.checked,
     createdAt: existing ? existing.createdAt : new Date().toISOString(),
   };
 }
-function draftSegment(d) {
-  const ok = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
-  if (!d.date || !ok(d.km) || !ok(d.liters) || !ok(d.pricePerLiter)) return null;
-  const draft = { ...d, total: round(d.liters * d.pricePerLiter, 2) };
-  const list = sortEntries(state.entries.filter(e => e.id !== d.id).concat([draft]));
-  return analyse(list).segOf.get(d.id) || null;
+
+// Alles, was Formular, Prüfung und Speichern über den Entwurf wissen müssen.
+//   legacy:   bearbeiteter alter Eintrag ohne Kilometerstand
+//   showTrip: Feld für den Tageskilometerzähler zeigen – nur, wenn sich die km nicht aus Kilometerständen ergeben
+//   entry:    fertiger Eintrag zum Speichern (null, solange etwas fehlt); seg/dist: sein Abschnitt und seine km
+function evalDraft() {
+  const d = readDraft();
+  const existing = state.editing && state.entries.find(e => e.id === state.editing);
+  const legacy = !!existing && existing.odo == null;
+  const car = state.cars.find(c => c.id === d.carId) || state.active;
+  const others = state.entries.filter(e => e.id !== d.id && carOf(e) === car.id);
+  const probe = { id: d.id, date: d.date, odo: isNum(d.odo) ? d.odo : undefined, createdAt: d.createdAt };
+  const order = sortEntries(others.concat([probe]));
+  const i = order.indexOf(probe);
+  const prev = order[i - 1] || null, next = order[i + 1] || null;
+  const viaOdo = isNum(d.odo) && !!prev && prev.odo != null;
+  const x = { d, car, legacy, prev, next, viaOdo, showTrip: legacy || !prev || prev.odo == null, entry: null, seg: null, dist: null };
+  if (!d.date || !isNum(d.liters) || !isNum(d.pricePerLiter) || !(isNum(d.odo) || (legacy && d.odo == null && isNum(d.trip)))) return x;
+
+  const liters = round(d.liters, 2), price = round(d.pricePerLiter, 3);
+  const odo = isNum(d.odo) ? round(d.odo, 1) : null;
+  const km = viaOdo ? Math.max(0, round(odo - prev.odo, 1)) : x.showTrip && isNum(d.trip) ? round(d.trip, 1) : 0;
+  const entry = {
+    id: d.id, carId: car.id, date: d.date, km, liters, pricePerLiter: price,
+    total: round(liters * price, 2), full: d.full,
+    createdAt: d.createdAt, updatedAt: new Date().toISOString(),
+  };
+  if (odo != null) entry.odo = odo;
+  const list = withDistance(sortEntries(others.concat([entry])));
+  x.entry = entry;
+  x.seg = analyse(list).segOf.get(entry.id) || null;
+  x.dist = list.find(e => e.id === entry.id).dist;
+  return x;
+}
+
+function selectCar(id) {
+  state.car = id;
+  try { localStorage.setItem('sv-car', id); } catch (e) {}
+  render();
 }
 
 function openSheet(entry) {
@@ -944,8 +1161,12 @@ function openSheet(entry) {
   state.draftId = entry ? entry.id : newId();
   state.attempted = false;
   $('#sheet-title').textContent = entry ? 'Tankvorgang bearbeiten' : 'Neuer Tankvorgang';
+  F.car.innerHTML = state.cars.map(c => '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>').join('');
+  F.car.value = entry ? carOf(entry) : state.active.id;
+  F.carRow.hidden = state.cars.length < 2;
   F.date.value = entry ? entry.date : todayISO();
-  F.km.value = entry ? inputNum(entry.km, 1) : '';
+  F.odo.value = entry && entry.odo != null ? inputNum(entry.odo, 1) : '';
+  F.km.value = entry && (entry.odo == null || entry.km > 0) ? inputNum(entry.km, 1) : '';
   F.l.value = entry ? inputNum(entry.liters, 2) : '';
   F.p.value = entry ? inputNum(entry.pricePerLiter, 3) : '';
   const last = state.sorted[state.sorted.length - 1];
@@ -957,9 +1178,9 @@ function openSheet(entry) {
   dz.querySelector('.del-confirm').hidden = true;
   $('#sheet').hidden = false;
   document.documentElement.style.overflow = 'hidden';
-  $('.panel').scrollTop = 0;
+  $('#sheet .panel').scrollTop = 0;
   updateForm();
-  if (!entry) F.km.focus({ preventScroll: true });
+  if (!entry) F.odo.focus({ preventScroll: true });
 }
 function closeSheet() {
   $('#sheet').hidden = true;
@@ -967,8 +1188,7 @@ function closeSheet() {
   state.editing = null;
 }
 
-function renderChecks(chk, extraError) {
-  const box = F.checks;
+function renderChecks(chk, extraError, box = F.checks) {
   const isErr = !!extraError || chk.errors.length > 0;
   const items = extraError ? [extraError] : isErr ? chk.errors : chk.warns;
   box.replaceChildren();
@@ -989,10 +1209,17 @@ function renderChecks(chk, extraError) {
 }
 
 function updateForm() {
-  const d = readDraft();
+  const x = evalDraft(), d = x.d, seg = x.seg;
   const okL = d.liters > 0, okP = d.pricePerLiter > 0;
   F.total.textContent = okL && okP ? fixedNum(round(d.liters * d.pricePerLiter, 2), 2) : '0,00';
-  const seg = draftSegment(d);
+  F.odo.placeholder = x.prev && x.prev.odo != null ? inputNum(x.prev.odo, 1) : '0';
+  F.tripRow.hidden = !x.showTrip;
+  F.distRow.hidden = x.showTrip;
+  F.tripHint.textContent = x.legacy ? 'laut Tageskilometerzähler' : x.prev ? 'nur dieses Mal · Tageskilometerzähler' : 'optional · Tageskilometerzähler';
+  if (!x.showTrip) {
+    F.distHint.textContent = 'seit ' + fmtDayMonth(x.prev.date) + ' (' + fmt.km(x.prev.odo) + ' km)';
+    F.dist.textContent = x.viaOdo && d.odo >= x.prev.odo ? inputNum(round(d.odo - x.prev.odo, 1), 1) : '–';
+  }
   let pv = '';
   if (seg && seg.closed && seg.l100 != null) {
     if (seg.end.id === d.id) {
@@ -1002,12 +1229,15 @@ function updateForm() {
     } else {
       pv = 'Zählt zur Volltankung am ' + fmtDate(seg.end.date) + ': <b>' + fmt.l100(seg.l100) + ' l/100 km</b>';
     }
+  } else if (seg && seg.start) {
+    pv = d.full ? '<b>Startpunkt:</b> Ab hier wird gerechnet. Den Verbrauch siehst du nach der nächsten Volltankung.'
+      : 'Teilbetankung vor dem Startpunkt: Gerechnet wird ab der nächsten Volltankung.';
   } else if (!d.full) {
     pv = 'Teilbetankung: Der Verbrauch wird mit der nächsten Volltankung berechnet.';
   }
   F.preview.innerHTML = pv;
   F.preview.hidden = !pv;
-  const chk = plausibility(d, seg);
+  const chk = plausibility(x);
   if (state.attempted) renderChecks(chk); else F.checks.hidden = true;
   const warnMode = state.attempted && !chk.errors.length && chk.warns.length > 0;
   F.save.textContent = state.saving ? 'Speichert…' : warnMode ? 'Trotzdem speichern' : 'Speichern';
@@ -1017,32 +1247,29 @@ function updateForm() {
 async function onSubmit(ev) {
   ev.preventDefault();
   if (state.saving || !state.store) return;
-  const d = readDraft();
-  const seg = draftSegment(d);
-  const chk = plausibility(d, seg);
+  const x = evalDraft();
+  const chk = plausibility(x);
   const firstTry = !state.attempted;
   state.attempted = true;
-  if (chk.errors.length || (chk.warns.length && firstTry)) {
+  if (chk.errors.length || (chk.warns.length && firstTry) || !x.entry) {
     updateForm();
     F.checks.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     return;
   }
-  const liters = round(d.liters, 2), price = round(d.pricePerLiter, 3);
-  const entry = {
-    id: d.id, date: d.date, km: round(d.km, 1), liters, pricePerLiter: price,
-    total: round(liters * price, 2), full: d.full,
-    createdAt: d.createdAt, updatedAt: new Date().toISOString(),
-  };
+  const entry = x.entry, seg = x.seg;
+  const fixes = kmFixes(state.entries.filter(e => e.id !== entry.id).concat([entry])).filter(e => e.id !== entry.id);
   const isNew = !state.editing;
   state.saving = true;
   F.save.disabled = true;
   updateForm();
   try {
-    await state.store.saveEntry(entry);
-    const s2 = draftSegment(entry);
+    if (fixes.length) await state.store.saveMany([entry, ...fixes]);
+    else await state.store.saveEntry(entry);
     closeSheet();
-    const cons = s2 && s2.closed && s2.end.id === entry.id && s2.l100 != null ? ' · ' + fmt.l100(s2.l100) + ' l/100 km' : '';
-    toast(isNew ? 'Gespeichert' + cons + '. Jetzt den Tageskilometerzähler auf null stellen.' : 'Änderung gespeichert' + cons + '.');
+    if (entry.carId !== state.active.id) selectCar(entry.carId);
+    const cons = seg && seg.closed && seg.end.id === entry.id && seg.l100 != null ? ' · ' + fmt.l100(seg.l100) + ' l/100 km' : '';
+    toast((isNew ? 'Gespeichert' : 'Änderung gespeichert') + cons + '.' +
+      (isNew && seg && seg.start && entry.full ? ' Das ist der Startpunkt, den Verbrauch siehst du nach der nächsten Volltankung.' : ''));
   } catch (err) {
     const code = err && err.code;
     renderChecks({ errors: [], warns: [] },
@@ -1067,6 +1294,7 @@ async function onDeleteZone(e) {
   if (act.dataset.act === 'ask') { ask.hidden = true; conf.hidden = false; return; }
   if (act.dataset.act === 'no') { ask.hidden = false; conf.hidden = true; return; }
   if (!state.editing || !state.store) return;
+  const fixes = kmFixes(state.entries.filter(e => e.id !== state.editing));
   act.disabled = true;
   try {
     await state.store.deleteEntry(state.editing);
@@ -1074,25 +1302,84 @@ async function onDeleteZone(e) {
     toast('Tankvorgang gelöscht.');
   } catch (err) {
     renderChecks({ errors: [], warns: [] }, 'Löschen fehlgeschlagen.');
+    return;
   } finally { act.disabled = false; }
+  // Nur die gespeicherten km des folgenden Eintrags; gerechnet wird ohnehin mit den Kilometerständen.
+  if (fixes.length) state.store.saveMany(fixes).catch(() => {});
 }
 
-async function onTankChange() {
-  const inp = $('#s-tank');
-  const v = parseNum(inp.value);
-  if (!(v >= 10 && v <= 200)) {
-    inp.value = inputNum(currentTank(), 1);
-    toast('Bitte einen Tankinhalt zwischen 10 und 200 Litern eingeben.');
-    return;
-  }
-  if (round(v, 1) === currentTank() || !state.store) return;
+/* Autos */
+const C = {};
+
+function openCarSheet(car) {
+  if (!canWrite()) return;
+  state.carEditing = car ? car.id : null;
+  $('#car-title').textContent = car ? 'Auto bearbeiten' : 'Auto hinzufügen';
+  C.name.value = car ? car.name : '';
+  C.tank.value = car ? inputNum(car.tankLiters, 1) : '';
+  C.save.textContent = car ? 'Speichern' : 'Auto hinzufügen';
+  C.checks.hidden = true;
+  const n = car ? state.entries.filter(e => carOf(e) === car.id).length : 0;
+  C.del.hidden = !car || state.cars.length < 2;
+  C.del.querySelector('[data-act="ask"]').hidden = false;
+  C.del.querySelector('.del-confirm').hidden = true;
+  $('#c-del-text').textContent = !car ? '' : n ? car.name + ' und ' + plural(n, 'Tankvorgang', 'Tankvorgänge') + ' endgültig löschen?' : car.name + ' löschen?';
+  $('#car-sheet').hidden = false;
+  document.documentElement.style.overflow = 'hidden';
+  $('#car-sheet .panel').scrollTop = 0;
+  if (!car) C.name.focus({ preventScroll: true });
+}
+function closeCarSheet() {
+  $('#car-sheet').hidden = true;
+  document.documentElement.style.overflow = '';
+  state.carEditing = null;
+}
+
+function carErrors() {
+  const errors = [], tank = parseNum(C.tank.value);
+  if (!C.name.value.trim()) errors.push('Bitte einen Namen für das Auto eingeben.');
+  if (tank == null) errors.push('Bitte das Tankvolumen eintragen.');
+  else if (!(tank >= 10 && tank <= 200)) errors.push('Das Tankvolumen muss zwischen 10 und 200 Litern liegen.');
+  return errors;
+}
+
+async function onCarSubmit(ev) {
+  ev.preventDefault();
+  if (!state.store || C.save.disabled) return;
+  const errors = carErrors();
+  if (errors.length) { renderChecks({ errors, warns: [] }, null, C.checks); return; }
+  const isNew = !state.carEditing;
+  const car = { id: state.carEditing || newId('a'), name: C.name.value.trim().slice(0, 40), tankLiters: round(parseNum(C.tank.value), 1) };
+  const cars = isNew ? state.cars.concat([car]) : state.cars.map(c => c.id === car.id ? car : c);
+  C.save.disabled = true;
   try {
-    await state.store.saveSettings({ ...state.settings, tankLiters: round(v, 1) });
-    toast('Tankinhalt gespeichert.');
+    await state.store.saveSettings({ ...state.settings, cars });
+    closeCarSheet();
+    if (isNew) selectCar(car.id);
+    toast(isNew ? car.name + ' hinzugefügt.' : 'Änderung gespeichert.');
   } catch (err) {
-    inp.value = inputNum(currentTank(), 1);
-    toast('Speichern fehlgeschlagen.');
-  }
+    renderChecks({ errors: [], warns: [] }, 'Speichern fehlgeschlagen. Tippe noch einmal auf „' + C.save.textContent + '“.', C.checks);
+  } finally { C.save.disabled = false; }
+}
+
+async function onCarDelete(e) {
+  const act = e.target.closest('[data-act]');
+  if (!act) return;
+  const ask = C.del.querySelector('[data-act="ask"]'), conf = C.del.querySelector('.del-confirm');
+  if (act.dataset.act === 'ask') { ask.hidden = true; conf.hidden = false; return; }
+  if (act.dataset.act === 'no') { ask.hidden = false; conf.hidden = true; return; }
+  const car = state.cars.find(c => c.id === state.carEditing);
+  if (!car || !state.store || state.cars.length < 2) return;
+  const ids = state.entries.filter(x => carOf(x) === car.id).map(x => x.id);
+  act.disabled = true;
+  try {
+    if (ids.length) await state.store.deleteMany(ids);
+    await state.store.saveSettings({ ...state.settings, cars: state.cars.filter(c => c.id !== car.id) });
+    closeCarSheet();
+    toast(car.name + (ids.length ? ' und ' + plural(ids.length, 'Tankvorgang', 'Tankvorgänge') : '') + ' gelöscht.');
+  } catch (err) {
+    renderChecks({ errors: [], warns: [] }, 'Löschen fehlgeschlagen.', C.checks);
+  } finally { act.disabled = false; }
 }
 
 /* ===================== Sichern & Laden ===================== */
@@ -1114,20 +1401,25 @@ async function shareFile(filename, data, mime) {
 
 async function exportData(kind) {
   if (!state.entries.length) return;
-  const rows = state.sorted;
   const stamp = todayISO();
   let res;
   if (kind === 'json') {
-    const data = JSON.stringify({ app: 'spritverbrauch', version: 1, exportedAt: new Date().toISOString(), settings: state.settings, entries: rows }, null, 2);
+    const data = JSON.stringify({ app: 'spritverbrauch', version: 1, exportedAt: new Date().toISOString(), settings: { ...state.settings, cars: state.cars }, entries: sortEntries(state.entries) }, null, 2);
     res = await shareFile('spritverbrauch-sicherung-' + stamp + '.json', data, 'application/json');
     if (res !== 'cancelled') { meta.set({ lastBackupAt: new Date().toISOString() }); renderStatus(); toast('Sicherung erstellt.'); }
   } else {
-    const head = ['Datum', 'Gefahrene km', 'Liter', 'Preis pro Liter (€)', 'Gesamtbetrag (€)', 'Vollgetankt', 'Verbrauch (l/100 km)'];
+    const csvText = s => /[;"\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    const head = ['Auto', 'Datum', 'Kilometerstand', 'Gefahrene km', 'Liter', 'Preis pro Liter (€)', 'Gesamtbetrag (€)', 'Vollgetankt', 'Verbrauch (l/100 km)'];
     const lines = [head.join(';')];
-    for (const e of rows) {
-      const seg = state.an.segOf.get(e.id);
-      const cons = e.full && seg && seg.end === e && seg.l100 != null ? fixedNum(round(seg.l100, 1), 1) : '';
-      lines.push([fmtDate(e.date), inputNum(e.km, 1), fixedNum(e.liters, 2), fixedNum(e.pricePerLiter, 3), fixedNum(e.total, 2), e.full ? 'ja' : 'nein', cons].join(';'));
+    for (const car of state.cars) {
+      const rows = withDistance(sortEntries(state.entries.filter(e => carOf(e) === car.id)));
+      const an = analyse(rows);
+      for (const e of rows) {
+        const seg = an.segOf.get(e.id);
+        const cons = e.full && seg && seg.end === e && seg.l100 != null ? fixedNum(round(seg.l100, 1), 1) : '';
+        lines.push([csvText(car.name), fmtDate(e.date), e.odo == null ? '' : inputNum(e.odo, 1), e.dist == null ? '' : inputNum(e.dist, 1),
+          fixedNum(e.liters, 2), fixedNum(e.pricePerLiter, 3), fixedNum(e.total, 2), e.full ? 'ja' : 'nein', cons].join(';'));
+      }
     }
     res = await shareFile('spritverbrauch-' + stamp + '.csv', '﻿' + lines.join('\r\n') + '\r\n', 'text/csv');
   }
@@ -1144,9 +1436,10 @@ async function onImportFile() {
   if (!list.length) { toast('Diese Datei ist keine Sicherung dieser App.'); return; }
   const known = new Set(state.entries.map(e => e.id));
   const dupes = list.filter(e => known.has(e.id)).length;
-  state.pendingImport = { list, settings: obj.settings && typeof obj.settings === 'object' ? obj.settings : null };
+  state.pendingImport = { list, cars: obj.settings && typeof obj.settings === 'object' ? cleanCars(obj.settings) : [] };
   const when = obj.exportedAt && !Number.isNaN(Date.parse(obj.exportedAt)) ? ' vom ' + fmtDate(toISO(new Date(obj.exportedAt))) : '';
-  $('#imp-text').textContent = 'Sicherung' + when + ' mit ' + plural(list.length, 'Tankvorgang', 'Tankvorgängen') + ' übernehmen? ' +
+  const nCars = new Set(list.map(carOf)).size;
+  $('#imp-text').textContent = 'Sicherung' + when + ' mit ' + plural(list.length, 'Tankvorgang', 'Tankvorgängen') + (nCars > 1 ? ' für ' + nCars + ' Autos' : '') + ' übernehmen? ' +
     (dupes ? plural(dupes, 'Eintrag gibt', 'Einträge gibt') + ' es schon, sie werden durch die Sicherung ersetzt. ' : '') +
     'Alle anderen Einträge auf diesem iPhone bleiben erhalten.';
   $('#imp-confirm').hidden = false;
@@ -1159,8 +1452,14 @@ async function onImportConfirm() {
   if (!p || !state.store) return;
   try {
     await state.store.saveMany(p.list);
-    const t = p.settings && Number(p.settings.tankLiters);
-    if (t >= 10 && t <= 200 && !state.settings.tankLiters) await state.store.saveSettings({ ...state.settings, tankLiters: t });
+    // Autos aus der Sicherung ergänzen. Wurde hier noch nie ein Auto oder Tankinhalt gespeichert, gelten deren Werte.
+    const fresh = !Array.isArray(state.settings.cars) && !state.settings.tankLiters;
+    const local = cleanCars(state.settings), cars = local.slice();
+    for (const c of p.cars) {
+      const i = cars.findIndex(x => x.id === c.id);
+      if (i < 0) cars.push(c); else if (fresh) cars[i] = c;
+    }
+    if (JSON.stringify(cars) !== JSON.stringify(local)) await state.store.saveSettings({ ...state.settings, cars });
     toast(plural(p.list.length, 'Tankvorgang', 'Tankvorgänge') + ' übernommen.');
   } catch (err) {
     toast('Laden fehlgeschlagen. Es wurde nichts verändert.');
@@ -1180,6 +1479,9 @@ function toast(msg) {
 function bindUI() {
   F.form = $('#f-form'); F.date = $('#f-date'); F.km = $('#f-km'); F.l = $('#f-l'); F.p = $('#f-p');
   F.full = $('#f-full'); F.total = $('#f-total'); F.preview = $('#f-preview'); F.checks = $('#f-checks'); F.save = $('#f-save');
+  F.car = $('#f-car'); F.carRow = $('#f-car-row'); F.odo = $('#f-odo');
+  F.tripRow = $('#f-trip-row'); F.tripHint = $('#f-trip-hint'); F.distRow = $('#f-dist-row'); F.dist = $('#f-dist'); F.distHint = $('#f-dist-hint');
+  C.form = $('#c-form'); C.name = $('#c-name'); C.tank = $('#c-tank'); C.checks = $('#c-checks'); C.save = $('#c-save'); C.del = $('#c-del');
 
   $('#period').addEventListener('click', e => {
     const b = e.target.closest('button[data-p]');
@@ -1197,12 +1499,33 @@ function bindUI() {
   });
   $('#sheet-close').addEventListener('click', closeSheet);
   $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').hidden) closeSheet(); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!$('#car-sheet').hidden) closeCarSheet();
+    else if (!$('#sheet').hidden) closeSheet();
+  });
   F.form.addEventListener('input', updateForm);
   F.form.addEventListener('change', updateForm);
   F.form.addEventListener('submit', onSubmit);
   $('#del-zone').addEventListener('click', onDeleteZone);
-  $('#s-tank').addEventListener('change', onTankChange);
+
+  $('#cars').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.hasAttribute('data-add')) openCarSheet(null);
+    else if (b.dataset.car !== state.active.id) selectCar(b.dataset.car);
+  });
+  $('#carlist').addEventListener('click', e => {
+    const b = e.target.closest('button[data-car]');
+    const car = b && state.cars.find(c => c.id === b.dataset.car);
+    if (car) openCarSheet(car);
+  });
+  $('#car-new').addEventListener('click', () => openCarSheet(null));
+  $('#car-close').addEventListener('click', closeCarSheet);
+  $('#car-sheet').addEventListener('click', e => { if (e.target.id === 'car-sheet') closeCarSheet(); });
+  C.form.addEventListener('submit', onCarSubmit);
+  C.form.addEventListener('input', () => { if (!C.checks.hidden) renderChecks({ errors: carErrors(), warns: [] }, null, C.checks); });
+  C.del.addEventListener('click', onCarDelete);
   $('#x-json').addEventListener('click', () => exportData('json'));
   $('#x-csv').addEventListener('click', () => exportData('csv'));
   $('#banner-btn').addEventListener('click', () => exportData('json'));
@@ -1234,7 +1557,7 @@ function init() {
   if (store.kind === 'local' && navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   store.subscribe(
     list => { state.entries = list.map(clean).filter(Boolean); state.loaded = true; state.conn = 'live'; render(); },
-    s => { state.settings = s && typeof s === 'object' ? s : {}; renderSettings(); },
+    s => { state.settings = s && typeof s === 'object' ? s : {}; render(); },
     () => { state.conn = 'error'; render(); }
   );
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
